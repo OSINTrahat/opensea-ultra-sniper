@@ -248,8 +248,8 @@ const ui = {
     if (t.includes('UPCOMING')) {
       return `${c.bCyan}UPCOMING${c.reset}`;
     }
-    if (t === 'PAUSED' || t === 'WARN' || t === 'WAITING') {
-      return `${c.bYellow}WAITING${c.reset}`;
+    if (t === 'PAUSED' || t === 'WARN' || t === 'WAITING' || t.includes('ALLOWLIST')) {
+      return `${c.bYellow}${t}${c.reset}`;
     }
     if (t === 'NO KEY' || t === 'NOT SET' || t === 'UNKNOWN' || t === 'INACTIVE') {
       return `${c.gray}${t}${c.reset}`;

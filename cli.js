@@ -427,6 +427,7 @@ function renderDropInfo(info) {
     else if (balEth === null) verdict = 'UNKNOWN';
     else if (balEth < need) verdict = 'LOW FUNDS';
     else if (s && s.maxPerWallet > 0 && s.mintedCount >= s.maxPerWallet) verdict = 'LIMIT HIT';
+    else if (/allowlist|gtd|fcfs/i.test(String(s ? s.phase : activePhaseName))) verdict = 'ALLOWLIST?';
     return [
       String(w.id),
       w.name || `Wallet ${w.id}`,
@@ -440,8 +441,11 @@ function renderDropInfo(info) {
 
   ui.renderTable(['#', 'Wallet', 'Address', 'Phase', 'Needed', 'Balance', 'Verdict'], rows);
 
-  const ready = rows.filter(r => !/NO KEY|NOT SET|LOW FUNDS|UNKNOWN|LIMIT/.test(ui.helpers.stripAnsi(r[6])));
+  const ready = rows.filter(r => !/NO KEY|NOT SET|LOW FUNDS|UNKNOWN|LIMIT|ALLOWLIST/.test(ui.helpers.stripAnsi(r[6])));
   ui.log('INFO', `${c.bGreen}${ready.length}${c.reset} of ${wallets.length} wallets ready to mint at ${c.bYellow}${priceEth} ETH${c.reset} + gas.`);
+  if (rows.some(r => /ALLOWLIST/.test(ui.helpers.stripAnsi(r[6])))) {
+    ui.log('INFO', `${c.bYellow}ALLOWLIST?${c.reset} means funds are fine, but that phase needs your wallet on the allowlist — the contract cannot reveal that check.`);
+  }
 
   return { priceEth, activePhaseName, phases };
 }
