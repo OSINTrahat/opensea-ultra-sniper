@@ -23,10 +23,10 @@ async function main() {
     ui.banner();
     console.log(`
   ${c.bYellow}${c.bold}SUPPORTED NETWORKS:${c.reset}
-    ${c.gray}â€¢${c.reset} ${c.cyan}ethereum${c.reset}  ${c.gray}Mainnet (Chain ID: 1)${c.reset}
-    ${c.gray}â€¢${c.reset} ${c.cyan}base${c.reset}      ${c.gray}Base Mainnet (Chain ID: 8453)${c.reset}
-    ${c.gray}â€¢${c.reset} ${c.cyan}robinhood${c.reset} ${c.gray}Robinhood Chain (Chain ID: 48)${c.reset}
-    ${c.gray}â€¢${c.reset} ${c.cyan}ink${c.reset}       ${c.gray}Ink Chain (Chain ID: 57073)${c.reset}
+    ${c.gray}*${c.reset} ${c.cyan}ethereum${c.reset}  ${c.gray}Mainnet (Chain ID: 1)${c.reset}
+    ${c.gray}*${c.reset} ${c.cyan}base${c.reset}      ${c.gray}Base Mainnet (Chain ID: 8453)${c.reset}
+    ${c.gray}*${c.reset} ${c.cyan}robinhood${c.reset} ${c.gray}Robinhood Chain (Chain ID: 48)${c.reset}
+    ${c.gray}*${c.reset} ${c.cyan}ink${c.reset}       ${c.gray}Ink Chain (Chain ID: 57073)${c.reset}
 
   ${c.bYellow}${c.bold}AVAILABLE COMMANDS:${c.reset}
     ${c.bGreen}node cli.js set-wallet <1-5> <privateKey>${c.reset}
@@ -251,7 +251,7 @@ async function main() {
       const results = await sniper.executeCountdownSnipe(armed, contract, (diffMs) => {
         if (diffMs > 1000 && diffMs % 2000 < 20) {
           const sec = (diffMs / 1000).toFixed(1);
-          process.stdout.write(`\r  ${c.gray}â”‚${c.reset}  ${c.bCyan}[ COUNTDOWN: ${c.bWhite}${sec}s${c.bCyan} ]${c.reset}  ${c.gray}â”€â”€${c.reset}  Live Gas: ${c.bGreen}${currentGweiStr}${c.reset}  ${c.gray}â”€â”€${c.reset}  Status: ${c.bgGreen}${c.bold}${c.black} ARMED ${c.reset} `);
+          process.stdout.write(`\r  ${c.bCyan}[ COUNTDOWN: ${c.bWhite}${sec}s${c.bCyan} ]${c.reset}  ${c.gray}--${c.reset}  Live Gas: ${c.bGreen}${currentGweiStr}${c.reset}  ${c.gray}--${c.reset}  Status: ${c.bgGreen}${c.bold}${c.black} ARMED ${c.reset} `);
         }
       });
       stopGasWatcher();

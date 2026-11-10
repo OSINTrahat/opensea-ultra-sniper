@@ -47,20 +47,23 @@ const ui = {
 
   banner() {
     console.log(`
-${c.bCyan}${c.bold}â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—
-â•‘                                                                                â•‘
-â•‘   ${c.bWhite}OPENSEA SEADROP & MULTI-CHAIN ULTRA SNIPER${c.bCyan}   ${c.bGreen}[v1.0.0]${c.bCyan}                     â•‘
-â•‘   ${c.gray}Zero-Latency In-Memory Pre-Signing â€¢ Multi-RPC Racing â€¢ Atomic Pre-Fire      ${c.bCyan}â•‘
-â•‘                                                                                â•‘
-â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•${c.reset}`);
+${c.bCyan}${c.bold}+==============================================================================+
+|                                                                              |
+|   ${c.bWhite}OPENSEA SEADROP & MULTI-CHAIN ULTRA SNIPER${c.bCyan}   ${c.bGreen}[v1.0.0]${c.bCyan}                   |
+|   ${c.gray}Zero-Latency In-Memory Pre-Signing * Multi-RPC Racing * Atomic Pre-Fire    ${c.bCyan}|
+|                                                                              |
++==============================================================================+${c.reset}`);
   },
 
   section(title) {
-    console.log(`\n${c.bCyan}â”â”â”[ ${c.bold}${c.bWhite}${title}${c.reset}${c.bCyan} ]${"â”".repeat(Math.max(5, 74 - title.length))}${c.reset}\n`);
+    const totalLen = 78;
+    const titlePart = `=== [ ${title} ] `;
+    const rem = Math.max(4, totalLen - titlePart.length);
+    console.log(`\n${c.bCyan}${c.bold}=== [ ${c.bWhite}${title}${c.bCyan} ] ${"=".repeat(rem)}${c.reset}\n`);
   },
 
   divider() {
-    console.log(`${c.gray}${"â”€".repeat(78)}${c.reset}`);
+    console.log(`${c.gray}${"-".repeat(78)}${c.reset}`);
   },
 
   badge(text) {
@@ -84,8 +87,8 @@ ${c.bCyan}${c.bold}â•”â•â•â•â•â•â•â•â�
   },
 
   infoRow(label, value, valColor = c.bWhite) {
-    const padLabel = label.padEnd(16, ' ');
-    console.log(`  ${c.gray}â”‚${c.reset}  ${c.cyan}${padLabel}${c.reset} :  ${valColor}${value}${c.reset}`);
+    const padLabel = label.padEnd(18, ' ');
+    console.log(`  ${c.cyan}${padLabel}${c.reset} :  ${valColor}${value}${c.reset}`);
   },
 
   log(level, msg) {
