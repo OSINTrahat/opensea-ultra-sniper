@@ -92,11 +92,23 @@ The suite natively supports the following EVM networks with pre-configured high-
 
 ### 🪟 Windows Setup Guide (PC / Laptop)
 
-#### 1. Requirements:
-- Install **Node.js** (LTS version) from [nodejs.org](https://nodejs.org/) (check the box "Automatically install necessary tools").
-- Install **Git for Windows** from [git-scm.com](https://git-scm.com/).
+#### Method A: Direct ZIP Download (Easiest — No Git Required)
+1. **[Click here to Download ZIP](https://github.com/OSINTrahat/opensea-ultra-sniper/archive/refs/heads/main.zip)** directly.
+2. Right-click the downloaded `.zip` file and select **"Extract All"**.
+3. Open **Command Prompt (CMD)** or **PowerShell** inside the extracted folder:
+   ```cmd
+   npm install
+   npm link
+   ```
+4. Now simply type:
+   ```cmd
+   sniper
+   ```
 
-#### 2. Run in PowerShell or Command Prompt (CMD):
+---
+
+#### Method B: Using Git Clone (For Developers)
+Requires [Git](https://git-scm.com/) installed on your machine:
 ```powershell
 # 1. Clone the repository
 git clone https://github.com/OSINTrahat/opensea-ultra-sniper.git
@@ -105,10 +117,10 @@ cd opensea-ultra-sniper
 # 2. Install dependencies
 npm install
 
-# 3. Enable the global 'sniper' shortcut command
+# 3. Enable global shortcut command
 npm link
 ```
-*Note for Windows PowerShell:* If you get a policy restriction error running `npm link`, run `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned` or simply use `node cli.js`.
+*Note for PowerShell:* If you get a policy restriction running `npm link`, run `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned` or simply use `node cli.js`.
 
 ---
 
