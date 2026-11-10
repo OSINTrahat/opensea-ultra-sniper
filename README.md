@@ -90,17 +90,77 @@ The suite natively supports the following EVM networks with pre-configured high-
 
 ## Installation & Setup
 
-### 1. Clone the Repository
-```bash
+### 🪟 Windows Setup Guide (PC / Laptop)
+
+#### 1. Requirements:
+- Install **Node.js** (LTS version) from [nodejs.org](https://nodejs.org/) (check the box "Automatically install necessary tools").
+- Install **Git for Windows** from [git-scm.com](https://git-scm.com/).
+
+#### 2. Run in PowerShell or Command Prompt (CMD):
+```powershell
+# 1. Clone the repository
 git clone https://github.com/OSINTrahat/opensea-ultra-sniper.git
 cd opensea-ultra-sniper
+
+# 2. Install dependencies
+npm install
+
+# 3. Enable the global 'sniper' shortcut command
+npm link
+```
+*Note for Windows PowerShell:* If you get a policy restriction error running `npm link`, run `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned` or simply use `node cli.js`.
+
+---
+
+### 📱 Android Phone Setup Guide (Using Termux)
+
+You can run this ultra-sniper directly from your Android phone anywhere with zero latency using Termux!
+
+#### 1. Install Termux:
+- Download and install **Termux** from [F-Droid](https://f-droid.org/en/packages/com.termux/) (Do NOT use the outdated Google Play Store version).
+
+#### 2. Open Termux and run the following setup commands:
+```bash
+# Update Termux packages
+pkg update -y && pkg upgrade -y
+
+# Install Node.js, Git, and build tools
+pkg install -y nodejs git
+
+# Clone the repository
+git clone https://github.com/OSINTrahat/opensea-ultra-sniper.git
+cd opensea-ultra-sniper
+
+# Install dependencies
+npm install
+
+# Enable global command
+npm link
 ```
 
-### 2. Install Node.js Dependencies
+#### 3. Ready to Launch:
+Now just type:
 ```bash
-npm install
+sniper
 ```
-This installs the required `ethers` (v6) library and necessary runtime bindings.
+The clean interactive menu will open on your phone screen! You can pick options simply by pressing `1`, `2`, `3` etc.
+
+---
+
+### ⚡ Quick Interactive Mode (No Complicated Commands)
+You do **not** need to type long commands! Just run:
+```bash
+sniper
+```
+And pick from the numbered menu:
+- `1` ➔ Snipe / Mint a drop
+- `2` ➔ Inspect a contract (schedules, prices, limits)
+- `3` ➔ Watch live network gas (Base, Ethereum, etc.)
+- `4` ➔ View all 5 wallet balances
+- `5` ➔ Auto-fund sub-wallets from Wallet 1
+- `6` ➔ Sweep leftover ETH back to cold vault
+- `7` ➔ Add or update private keys
+- `8` ➔ Set recipient vault address
 
 ---
 
