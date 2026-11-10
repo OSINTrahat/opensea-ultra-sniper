@@ -33,7 +33,7 @@ High-frequency, institutional-grade automated minting suite engineered to execut
 ## Architectural Overview & Competitive Edge
 
 Conventional minting bots and browser extensions typically fail during competitive public drops for three structural reasons:
-1. **Cryptographic Signing Delay:** Standard tools wait until the block timestamp opens before assembling and signing the transaction, which introduces a 200msâ€“500ms cryptographic CPU bottleneck.
+1. **Cryptographic Signing Delay:** Standard tools wait until the block timestamp opens before assembling and signing the transaction, which introduces a 200ms–500ms cryptographic CPU bottleneck.
 2. **Single-RPC Chokepoints:** Sending transactions to a single RPC node exposes the caller to dropped packets, rate-limiting, and network propagation delays.
 3. **Mempool Latency:** Submitting after the block opens guarantees placement in subsequent blocks or behind competitive MEV/searcher transactions.
 
@@ -113,19 +113,19 @@ Configure your wallets using the command line:
 
 ```bash
 # Configure Wallet 1
-node cli.js set-wallet 1 0xYOUR_PRIVATE_KEY_1
+sniper set-wallet 1 0xYOUR_PRIVATE_KEY_1
 
 # Configure Wallet 2
-node cli.js set-wallet 2 0xYOUR_PRIVATE_KEY_2
+sniper set-wallet 2 0xYOUR_PRIVATE_KEY_2
 
 # Configure Wallet 3
-node cli.js set-wallet 3 0xYOUR_PRIVATE_KEY_3
+sniper set-wallet 3 0xYOUR_PRIVATE_KEY_3
 
 # Configure Wallet 4
-node cli.js set-wallet 4 0xYOUR_PRIVATE_KEY_4
+sniper set-wallet 4 0xYOUR_PRIVATE_KEY_4
 
 # Configure Wallet 5
-node cli.js set-wallet 5 0xYOUR_PRIVATE_KEY_5
+sniper set-wallet 5 0xYOUR_PRIVATE_KEY_5
 ```
 
 ---
@@ -136,11 +136,11 @@ node cli.js set-wallet 5 0xYOUR_PRIVATE_KEY_5
 Stores or updates the private key for an allocated wallet slot (1 through 5). Automatically derives and prints the public checksum address.
 
 ```bash
-node cli.js set-wallet <walletId: 1-5> <privateKey>
+sniper set-wallet <walletId: 1-5> <privateKey>
 ```
 **Example:**
 ```bash
-node cli.js set-wallet 1 0x4f3edf983ac636a65a842ce7c78d5aa706d41cdc168f8364ff0d58a975183388
+sniper set-wallet 1 0x4f3edf983ac636a65a842ce7c78d5aa706d41cdc168f8364ff0d58a975183388
 ```
 **Output:**
 ```
@@ -154,10 +154,10 @@ Configures a primary destination address. All NFTs minted across your sub-wallet
 
 ```bash
 # View current recipient vault
-node cli.js recipient
+sniper recipient
 
 # Set new recipient vault address
-node cli.js recipient 0xYourMainColdVaultAddress
+sniper recipient 0xYourMainColdVaultAddress
 ```
 
 ---
@@ -166,11 +166,11 @@ node cli.js recipient 0xYourMainColdVaultAddress
 Automatically funds Wallets 2 through 5 from Wallet 1 (Master Wallet) in a single command. You only ever need to send ETH to Wallet 1; the bot will disburse exact mint + gas funds to the other wallets automatically.
 
 ```bash
-node cli.js fund <amountInEth> [chain]
+sniper fund <amountInEth> [chain]
 ```
 **Example:**
 ```bash
-node cli.js fund 0.005 base
+sniper fund 0.005 base
 ```
 
 ---
@@ -179,12 +179,12 @@ node cli.js fund 0.005 base
 Sweeps all leftover native ETH from sub-wallets (Wallets 2-5) back to your Master Wallet or Recipient Vault after the mint has concluded, deducting only the minimal transfer gas.
 
 ```bash
-node cli.js sweep [chain]
-# or: node cli.js withdraw [chain]
+sniper sweep [chain]
+# or: sniper withdraw [chain]
 ```
 **Example:**
 ```bash
-node cli.js sweep base
+sniper sweep base
 ```
 
 ---
@@ -193,25 +193,25 @@ node cli.js sweep base
 Queries real-time native ETH balances across all 5 wallets on the specified chain.
 
 ```bash
-node cli.js wallets [chain: ethereum | base | robinhood | ink]
+sniper wallets [chain: ethereum | base | robinhood | ink]
 ```
 *(Default chain: `base`)*
 
 **Example:**
 ```bash
-node cli.js wallets base
+sniper wallets base
 ```
 **Output Table:**
 ```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ ID      â”‚ Name       â”‚ Address                                    â”‚ Balance     â”‚ Status â”‚
-â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”¤
-â”‚ 1       â”‚ Wallet 1   â”‚ 0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1 â”‚ 0.04500 ETH â”‚ ACTIVE â”‚
-â”‚ 2       â”‚ Wallet 2   â”‚ 0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0 â”‚ 0.02100 ETH â”‚ ACTIVE â”‚
-â”‚ 3       â”‚ Wallet 3   â”‚ 0x22d491Bde2303f2f13385b1E34952F2285b24471 â”‚ 0.01500 ETH â”‚ ACTIVE â”‚
-â”‚ 4       â”‚ Wallet 4   â”‚ Not configured                             â”‚ 0.00000 ETH â”‚ INACTIVEâ”‚
-â”‚ 5       â”‚ Wallet 5   â”‚ Not configured                             â”‚ 0.00000 ETH â”‚ INACTIVEâ”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+┌─────────┬────────────┬────────────────────────────────────────────┬─────────────┬────────┐
+│ ID      │ Name       │ Address                                    │ Balance     │ Status │
+├─────────┼────────────┼────────────────────────────────────────────┼─────────────┼────────┤
+│ 1       │ Wallet 1   │ 0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1 │ 0.04500 ETH │ ACTIVE │
+│ 2       │ Wallet 2   │ 0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0 │ 0.02100 ETH │ ACTIVE │
+│ 3       │ Wallet 3   │ 0x22d491Bde2303f2f13385b1E34952F2285b24471 │ 0.01500 ETH │ ACTIVE │
+│ 4       │ Wallet 4   │ Not configured                             │ 0.00000 ETH │ INACTIVE│
+│ 5       │ Wallet 5   │ Not configured                             │ 0.00000 ETH │ INACTIVE│
+└─────────┴────────────┴────────────────────────────────────────────┴─────────────┴────────┘
 ```
 
 ---
@@ -220,12 +220,12 @@ node cli.js wallets base
 Streams live network Base Fee, Priority Fee, and estimated gas cost per mint. Automatically polls every 2.5 seconds with zero-lag RPC failover.
 
 ```bash
-node cli.js gas [chain: ethereum | base | robinhood | ink]
+sniper gas [chain: ethereum | base | robinhood | ink]
 ```
 
 **Example:**
 ```bash
-node cli.js gas base
+sniper gas base
 ```
 **Output Stream:**
 ```
@@ -243,12 +243,12 @@ Analyzes target contracts before minting.
 - **For Custom Web3 Contracts:** Analyzes bytecode to detect standard mint function signatures (`mint()`, `claim()`, `publicMint(uint256)`), checks paused state, and evaluates pricing.
 
 ```bash
-node cli.js inspect <contractAddress> [chain]
+sniper inspect <contractAddress> [chain]
 ```
 
 **Example:**
 ```bash
-node cli.js inspect 0x1234567890abcdef1234567890abcdef12345678 base
+sniper inspect 0x1234567890abcdef1234567890abcdef12345678 base
 ```
 
 **Output:**
@@ -260,21 +260,21 @@ Protocol:    OpenSea SeaDrop (0x00005EA00Ac477B1030CE78506496665451e930B)
 Network Gas: 0.011 Gwei (~0.000002 ETH per mint)
 
 =================== DROP SCHEDULE (ALL PHASES) ===================
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ Phase   â”‚ Name                   â”‚ Price    â”‚ StartTime            â”‚ EndTime              â”‚ MaxPerWallet â”‚ Status             â”‚
-â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
-â”‚ #1      â”‚ Allowlist / GTD / FCFS â”‚ 0.000 ETHâ”‚ 11/11/2026, 12:00 AM â”‚ 11/11/2026, 12:30 AM â”‚ 1            â”‚ UPCOMING (120s)    â”‚
-â”‚ #2      â”‚ Public Mint            â”‚ 0.005 ETHâ”‚ 11/11/2026, 12:30 AM â”‚ 11/12/2026, 12:00 AM â”‚ 3            â”‚ UPCOMING (1920s)   â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+┌─────────┬────────────────────────┬──────────┬──────────────────────┬──────────────────────┬──────────────┬────────────────────┐
+│ Phase   │ Name                   │ Price    │ StartTime            │ EndTime              │ MaxPerWallet │ Status             │
+├─────────┼────────────────────────┼──────────┼──────────────────────┼──────────────────────┼──────────────┼────────────────────┤
+│ #1      │ Allowlist / GTD / FCFS │ 0.000 ETH│ 11/11/2026, 12:00 AM │ 11/11/2026, 12:30 AM │ 1            │ UPCOMING (120s)    │
+│ #2      │ Public Mint            │ 0.005 ETH│ 11/11/2026, 12:30 AM │ 11/12/2026, 12:00 AM │ 3            │ UPCOMING (1920s)   │
+└─────────┴────────────────────────┴──────────┴──────────────────────┴──────────────────────┴──────────────┴────────────────────┘
 
 ================== WALLET READINESS & BALANCES ==================
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ Wallet   â”‚ Address                                    â”‚ TargetPhase            â”‚ Balance     â”‚ MintPrice  â”‚ HasFee â”‚ Readiness â”‚
-â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
-â”‚ 1: W1    â”‚ 0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1 â”‚ Allowlist / GTD / FCFS â”‚ 0.04500 ETH â”‚ 0.000 ETH  â”‚ YES    â”‚ READY     â”‚
-â”‚ 2: W2    â”‚ 0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0 â”‚ Allowlist / GTD / FCFS â”‚ 0.02100 ETH â”‚ 0.000 ETH  â”‚ YES    â”‚ READY     â”‚
-â”‚ 3: W3    â”‚ 0x22d491Bde2303f2f13385b1E34952F2285b24471 â”‚ Allowlist / GTD / FCFS â”‚ 0.01500 ETH â”‚ 0.000 ETH  â”‚ YES    â”‚ READY     â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+┌──────────┬────────────────────────────────────────────┬────────────────────────┬─────────────┬────────────┬────────┬───────────┐
+│ Wallet   │ Address                                    │ TargetPhase            │ Balance     │ MintPrice  │ HasFee │ Readiness │
+├──────────┼────────────────────────────────────────────┼────────────────────────┼─────────────┼────────────┼────────┼───────────┤
+│ 1: W1    │ 0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1 │ Allowlist / GTD / FCFS │ 0.04500 ETH │ 0.000 ETH  │ YES    │ READY     │
+│ 2: W2    │ 0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0 │ Allowlist / GTD / FCFS │ 0.02100 ETH │ 0.000 ETH  │ YES    │ READY     │
+│ 3: W3    │ 0x22d491Bde2303f2f13385b1E34952F2285b24471 │ Allowlist / GTD / FCFS │ 0.01500 ETH │ 0.000 ETH  │ YES    │ READY     │
+└──────────┴────────────────────────────────────────────┴────────────────────────┴─────────────┴────────────┴────────┴───────────┘
 ```
 
 ---
@@ -285,17 +285,17 @@ Arms pre-signed transactions, tracks live gas continuously during countdown, and
 #### Mode A: 5-Wallet Parallel Burst (Recommended)
 Blasts transactions simultaneously across all configured wallets.
 ```bash
-node cli.js snipe <contractAddress> <chain> all
+sniper snipe <contractAddress> <chain> all
 ```
 **Example:**
 ```bash
-node cli.js snipe 0x1234567890abcdef1234567890abcdef12345678 base all
+sniper snipe 0x1234567890abcdef1234567890abcdef12345678 base all
 ```
 
 #### Mode B: Single Target Wallet
 Executes the snipe using only a specific wallet slot (e.g. Wallet 1).
 ```bash
-node cli.js snipe <contractAddress> <chain> 1
+sniper snipe <contractAddress> <chain> 1
 ```
 
 **Execution Flow Output:**
@@ -318,13 +318,13 @@ node cli.js snipe <contractAddress> <chain> 1
 [OK] [Wallet 3] Accepted in 48ms | Hash: 0x55aa029cd410...
 
 ======================== SNIPE EXECUTION RESULTS ========================
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ Success â”‚ Wallet   â”‚ Hash                                                               â”‚ Latency   â”‚
-â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
-â”‚ true    â”‚ Wallet 1 â”‚ 0x93b7482618ecbf542c385fa8145719ab23c4a259c73ef8902d847183efba098 â”‚ 42ms      â”‚
-â”‚ true    â”‚ Wallet 2 â”‚ 0x29ef90a182b3dc182746f39185a73b4009f48ca179475185938bf82384a838  â”‚ 45ms      â”‚
-â”‚ true    â”‚ Wallet 3 â”‚ 0x55aa029cd4108849b287582b185938a18357492c10958371948572837109b8  â”‚ 48ms      â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+┌─────────┬──────────┬────────────────────────────────────────────────────────────────────┬───────────┐
+│ Success │ Wallet   │ Hash                                                               │ Latency   │
+├─────────┼──────────┼────────────────────────────────────────────────────────────────────┼───────────┤
+│ true    │ Wallet 1 │ 0x93b7482618ecbf542c385fa8145719ab23c4a259c73ef8902d847183efba098 │ 42ms      │
+│ true    │ Wallet 2 │ 0x29ef90a182b3dc182746f39185a73b4009f48ca179475185938bf82384a838  │ 45ms      │
+│ true    │ Wallet 3 │ 0x55aa029cd4108849b287582b185938a18357492c10958371948572837109b8  │ 48ms      │
+└─────────┴──────────┴────────────────────────────────────────────────────────────────────┴───────────┘
 ```
 
 ---
@@ -363,11 +363,11 @@ cd opensea-ultra-sniper
 npm install
 
 # 4. Set your wallets
-node cli.js set-wallet 1 <PRIVATE_KEY>
+sniper set-wallet 1 <PRIVATE_KEY>
 
 # 5. Run under TMUX or SCREEN (keeps session alive if SSH disconnects)
 tmux new -s sniper
-node cli.js snipe <CONTRACT_ADDRESS> base all
+sniper snipe <CONTRACT_ADDRESS> base all
 # Detach with: Ctrl+B then D
 ```
 
