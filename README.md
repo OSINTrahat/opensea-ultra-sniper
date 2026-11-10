@@ -1,9 +1,10 @@
-# OpenSea SeaDrop & Multi-Chain Ultra-Fast Mint Sniper
+# SUPER MINT — Multi-Chain Ultra-Fast NFT Mint Sniper
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Node: >=18.0.0](https://img.shields.io/badge/Node->=18.0.0-green.svg)](https://nodejs.org/)
 [![Protocol: SeaDrop_v1](https://img.shields.io/badge/Protocol-SeaDrop_v1-orange.svg)](https://opensea.io)
 [![Architecture: Multi--Node_Racing](https://img.shields.io/badge/Architecture-Multi--Node_Racing-purple.svg)]()
+[![UI: Terminal](https://img.shields.io/badge/UI-Arrow--Key_Terminal-2ea043.svg)]()
 
 High-frequency, institutional-grade automated minting suite engineered to execute sub-second transactions on OpenSea SeaDrop V1 contracts and generic Web3 smart contracts. Designed to outperform conventional minting scripts through in-memory cryptographic pre-signing, multi-RPC racing, and atomic countdown synchronization.
 
@@ -134,20 +135,47 @@ The clean interactive menu will open on your phone screen! You can pick options 
 
 ---
 
-### ⚡ Quick Interactive Mode (No Complicated Commands)
-You do **not** need to type long commands! Just run:
+### ⚡ Interactive Mode (No Complicated Commands)
+You do **not** need to remember long commands. Just run:
 ```bash
 sniper
 ```
-And pick from the numbered menu:
-- `1` ➔ Snipe / Mint a drop
-- `2` ➔ Inspect a contract (schedules, prices, limits)
-- `3` ➔ Watch live network gas (Base, Ethereum, etc.)
-- `4` ➔ View all 5 wallet balances
-- `5` ➔ Auto-fund sub-wallets from Wallet 1
-- `6` ➔ Sweep leftover ETH back to cold vault
-- `7` ➔ Add or update private keys
-- `8` ➔ Set recipient vault address
+The branded **SUPER MINT** opening page appears, and every action is one keypress away:
+
+```text
+   ███████╗██╗   ██╗██████╗ ███████╗██████╗    ███╗   ███╗██╗███╗   ██╗████████╗
+   ██╔════╝██║   ██║██╔══██╗██╔════╝██╔══██╗   ████╗ ████║██║████╗  ██║╚══██╔══╝
+   ███████╗██║   ██║██████╔╝█████╗  ██████╔╝   ██╔████╔██║██║██╔██╗ ██║   ██║
+   ╚════██║██║   ██║██╔═══╝ ██╔══╝  ██╔══██╗   ██║╚██╔╝██║██║██║╚██╗██║   ██║
+   ███████║╚██████╔╝██║     ███████╗██║  ██║   ██║ ╚═╝ ██║██║██║ ╚████║   ██║
+   ╚══════╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝   ╚═╝
+
+              S U P E R   M I N T   ·   Atomic Multi-Chain Mint Engine
+
+  ╭──────────────────────────────────────────────────────────────────────────╮
+  │  ◆  MAIN MENU                                                            │
+  ├──────────────────────────────────────────────────────────────────────────┤
+  │    ❯ 1   Snipe / Mint Drop       (Pre-sign & atomic blast at 0ms)        │
+  │      2   Inspect Drop / Contract (Phases, start time, price, limits)     │
+  │      3   Live Gas Stream         (Monitor Base Fee & Priority Gwei)      │
+  │      4   Check Wallet Balances   (View all 5 wallets on any chain)       │
+  │      5   Auto-Fund Sub-Wallets   (Send gas from Wallet 1 to Wallets 2-5) │
+  │      6   Sweep Balances          (Withdraw leftover ETH to Vault)        │
+  │      7   Set / Update Wallet Key (Save private key 1 to 5)               │
+  │      8   Set Recipient Vault     (Direct delivery address)              │
+  │      0   Exit                    (Close Super Mint)                      │
+  ├──────────────────────────────────────────────────────────────────────────┤
+  │  ↑↓ move    ↵ select    number keys    q quit                           │
+  ╰──────────────────────────────────────────────────────────────────────────╯
+```
+*(Illustrative sample — colours are mint/teal on your terminal.)*
+
+**Three ways to pick, whichever feels natural:**
+- **Arrow keys:** `↑` / `↓` to move the green pointer, `Enter` to confirm.
+- **Number keys:** press `1`–`8` (or `0` to exit) and it selects instantly.
+- **Vim keys:** `j` / `k` move, `q` quits.
+
+Every sub-screen (network picker, speed tier, wallet slot) uses the same arrow-key picker, so there is nothing to type except the contract address and quantities.
 
 ---
 

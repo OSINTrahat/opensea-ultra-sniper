@@ -27,95 +27,83 @@ function askQuestion(query) {
   }));
 }
 
-function selectOptionArrow(title, options) {
+function selectOptionArrow(title, options, opts = {}) {
+  const stdin = process.stdin;
+
+  // Non-interactive fallback (piped input / CI): print the screen, read a line.
+  if (!stdin.isTTY) {
+    ui.screen(title, options, 0, opts).forEach(l => console.log(l));
+    return askQuestion(`  Select: `).then(ans => {
+      const key = String(ans).trim();
+      const hit = options.find((o, i) => (o.key !== undefined ? String(o.key) : String(i + 1)) === key);
+      return (hit || options[0]).value;
+    });
+  }
+
   return new Promise((resolve) => {
     let selectedIndex = 0;
-    const stdin = process.stdin;
+    let frame = [];
 
-    // Enable raw mode to read single keypresses
-    if (stdin.isTTY) stdin.setRawMode(true);
+    stdin.setRawMode(true);
     stdin.resume();
     stdin.setEncoding('utf8');
 
-    function render() {
-      // Clear previous lines
-      console.log(`\n  ${c.bYellow}${c.bold}${title}${c.reset}`);
-      console.log(`  ${c.gray}(Use ↑ / ↓ arrow keys or number keys, press Enter to select)${c.reset}\n`);
-
-      options.forEach((opt, idx) => {
-        if (idx === selectedIndex) {
-          console.log(`  ${c.bGreen}${c.bold}❯ ${opt.label}${c.reset}  ${c.cyan}${opt.hint || ''}${c.reset}`);
-        } else {
-          console.log(`    ${c.gray}${opt.label}${c.reset}  ${c.gray}${opt.hint || ''}${c.reset}`);
-        }
-      });
+    function paint() {
+      frame = ui.screen(title, options, selectedIndex, opts);
+      process.stdout.write(frame.join('\n') + '\n');
     }
 
-    render();
-
-    function onData(chunk) {
-      const key = chunk.toString();
-
-      // Ctrl+C
-      if (key === '\u0003') {
-        cleanup();
-        process.exit(0);
-      }
-
-      // Enter
-      if (key === '\r' || key === '\n') {
-        cleanup();
-        console.log('');
-        resolve(options[selectedIndex].value);
-        return;
-      }
-
-      // Up arrow
-      if (key === '\u001b[A') {
-        selectedIndex = (selectedIndex - 1 + options.length) % options.length;
-        reRender();
-        return;
-      }
-
-      // Down arrow
-      if (key === '\u001b[B') {
-        selectedIndex = (selectedIndex + 1) % options.length;
-        reRender();
-        return;
-      }
-
-      // Direct number key (1-9)
-      const num = parseInt(key, 10);
-      if (!isNaN(num) && num >= 1 && num <= options.length) {
-        cleanup();
-        console.log('');
-        resolve(options[num - 1].value);
-        return;
-      }
-      if (key === '0') {
-        const zeroOpt = options.find(o => o.value === '0' || o.value === 0);
-        if (zeroOpt) {
-          cleanup();
-          console.log('');
-          resolve(zeroOpt.value);
-          return;
-        }
-      }
-    }
-
-    function reRender() {
-      // Move cursor up by (options.length + 3) lines and clear
-      readline.moveCursor(process.stdout, 0, -(options.length + 4));
+    function repaint() {
+      readline.moveCursor(process.stdout, 0, -frame.length);
       readline.clearScreenDown(process.stdout);
-      render();
+      paint();
     }
 
     function cleanup() {
       stdin.removeListener('data', onData);
-      if (stdin.isTTY) stdin.setRawMode(false);
+      if (stdin.setRawMode) stdin.setRawMode(false);
       stdin.pause();
     }
 
+    function finish(value) {
+      readline.moveCursor(process.stdout, 0, -frame.length);
+      readline.clearScreenDown(process.stdout);
+      const chosen = options.find(o => String(o.value) === String(value));
+      if (chosen) ui.pick(String(chosen.label).replace(/^\s*\d+\)\s*/, ''));
+      else console.log('');
+      cleanup();
+      resolve(value);
+    }
+
+    function keyOf(opt, idx) {
+      return opt.key !== undefined ? String(opt.key) : String(idx + 1);
+    }
+
+    function onData(chunk) {
+      const key = chunk.toString();
+
+      if (key === '\u0003') { cleanup(); process.stdout.write('\n'); process.exit(0); }
+      if (key === 'q' || key === 'Q' || key === '\u001b') {
+        const exitOpt = options.find(o => String(o.value) === '0' || String(o.value) === 'exit');
+        if (exitOpt) return finish(exitOpt.value);
+        cleanup(); process.stdout.write('\n'); process.exit(0);
+      }
+      if (key === '\r' || key === '\n') return finish(options[selectedIndex].value);
+      if (key === '\u001b[A' || key === '\u001bOA') { selectedIndex = (selectedIndex - 1 + options.length) % options.length; return repaint(); }
+      if (key === '\u001b[B' || key === '\u001bOB') { selectedIndex = (selectedIndex + 1) % options.length; return repaint(); }
+
+      const hit = options.findIndex((o, i) => keyOf(o, i) === key.trim());
+      if (hit >= 0) {
+        selectedIndex = hit;
+        return finish(options[hit].value);
+      }
+
+      // j / k vim keys
+      if (key === 'j') { selectedIndex = (selectedIndex + 1) % options.length; return repaint(); }
+      if (key === 'k') { selectedIndex = (selectedIndex - 1 + options.length) % options.length; return repaint(); }
+    }
+
+    paint();
     stdin.on('data', onData);
   });
 }
@@ -130,9 +118,7 @@ async function selectChainInteractive(defaultChain = 'base') {
 }
 
 async function interactiveMenu() {
-  ui.banner();
-
-  const choice = await selectOptionArrow('What would you like to do?', [
+  const choice = await selectOptionArrow('Main Menu', [
     { label: '1) Snipe / Mint Drop', hint: '(Pre-sign & atomic blast at 0ms)', value: '1' },
     { label: '2) Inspect Drop / Contract', hint: '(Phases, start time, price, limits)', value: '2' },
     { label: '3) Live Gas Stream', hint: '(Monitor Base Fee & Priority Gwei)', value: '3' },
@@ -141,8 +127,13 @@ async function interactiveMenu() {
     { label: '6) Sweep Balances', hint: '(Withdraw leftover ETH to Vault)', value: '6' },
     { label: '7) Set / Update Wallet Key', hint: '(Save private key 1 to 5)', value: '7' },
     { label: '8) Set Recipient Cold Vault', hint: '(Direct delivery address)', value: '8' },
-    { label: '0) Exit', hint: '', value: '0' }
-  ]);
+    { label: '0) Exit', hint: 'Close Super Mint', value: '0', key: '0' }
+  ], { banner: true });
+
+  if (choice === '0' || choice === undefined || choice === null) {
+    console.log(`\n  ${c.mintBright}${c.bold}Super Mint${c.reset} ${c.gray}closed.${c.reset}\n`);
+    return;
+  }
 
   if (choice === '1') {
     const contract = await askQuestion(`\n  Enter NFT Contract Address: `);
@@ -193,13 +184,13 @@ async function interactiveMenu() {
   }
 
   if (choice === '7') {
-    console.log(`\n  Select Wallet Slot to Configure:`);
-    console.log(`    1) Wallet 1 (Master Funder)`);
-    console.log(`    2) Wallet 2 (Sniper Sub-1)`);
-    console.log(`    3) Wallet 3 (Sniper Sub-2)`);
-    console.log(`    4) Wallet 4 (Sniper Sub-3)`);
-    console.log(`    5) Wallet 5 (Sniper Sub-4)`);
-    const slot = await askQuestion(`  Slot [1-5]: `);
+    const slot = await selectOptionArrow('Select Wallet Slot to Configure:', [
+      { label: '1) Wallet 1', hint: 'Master funder wallet', value: '1' },
+      { label: '2) Wallet 2', hint: 'Sniper sub-wallet 1', value: '2' },
+      { label: '3) Wallet 3', hint: 'Sniper sub-wallet 2', value: '3' },
+      { label: '4) Wallet 4', hint: 'Sniper sub-wallet 3', value: '4' },
+      { label: '5) Wallet 5', hint: 'Sniper sub-wallet 4', value: '5' }
+    ]);
     const key = await askQuestion(`  Enter Private Key (64-char hex): `);
     if (slot && key) {
       const res = walletManager.setWalletKey(slot, key);
