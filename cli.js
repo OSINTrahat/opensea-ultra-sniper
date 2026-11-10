@@ -26,44 +26,44 @@ async function main() {
   ${c.gray}------------------------------------------------------${c.reset}
 
   ${c.bYellow}${c.bold}[ 1. WALLET SETUP & MANAGEMENT ]${c.reset}
-  ${c.bGreen}node cli.js set-wallet <1-5> <privateKey>${c.reset}
+  ${c.bGreen}sniper set-wallet <1-5> <privateKey>${c.reset}
       Configure or update private key for wallet 1 through 5.
-      ${c.gray}Example: node cli.js set-wallet 1 0xac0974bec39a17e36ba4a6b4...${c.reset}
+      ${c.gray}Example: sniper set-wallet 1 0xac0974bec39a17e36ba4a6b4...${c.reset}
 
-  ${c.bGreen}node cli.js recipient [address]${c.reset}
+  ${c.bGreen}sniper recipient [address]${c.reset}
       View or set main Vault/Receiver address. All minted NFTs and swept
       funds go straight to this cold wallet.
-      ${c.gray}Example: node cli.js recipient 0xYourMainVaultAddress${c.reset}
+      ${c.gray}Example: sniper recipient 0xYourMainVaultAddress${c.reset}
 
-  ${c.bGreen}node cli.js wallets [chain]${c.reset}
+  ${c.bGreen}sniper wallets [chain]${c.reset}
       Check real-time native ETH balances and readiness of all 5 wallets.
-      ${c.gray}Example: node cli.js wallets base${c.reset}
+      ${c.gray}Example: sniper wallets base${c.reset}
 
   ${c.bYellow}${c.bold}[ 2. AUTOMATIC GAS DISPATCH & RECOVERY ]${c.reset}
-  ${c.bGreen}node cli.js fund <amountEth> [chain]${c.reset}
+  ${c.bGreen}sniper fund <amountEth> [chain]${c.reset}
       Auto-distribute gas from Master Wallet 1 to Sub-Wallets 2-5 in 1 command.
-      ${c.gray}Example: node cli.js fund 0.005 base${c.reset}
+      ${c.gray}Example: sniper fund 0.005 base${c.reset}
 
-  ${c.bGreen}node cli.js sweep [chain]${c.reset}
+  ${c.bGreen}sniper sweep [chain]${c.reset}
       Sweep leftover ETH from sub-wallets back to Master / Recipient Vault.
-      ${c.gray}Example: node cli.js sweep base${c.reset}
+      ${c.gray}Example: sniper sweep base${c.reset}
 
   ${c.bYellow}${c.bold}[ 3. MONITORING & DROP INSPECTION ]${c.reset}
-  ${c.bGreen}node cli.js gas [chain]${c.reset}
+  ${c.bGreen}sniper gas [chain]${c.reset}
       Live stream Base Fee, Priority Fee, and estimated mint costs every 2.5s.
-      ${c.gray}Example: node cli.js gas base${c.reset}
+      ${c.gray}Example: sniper gas base${c.reset}
 
-  ${c.bGreen}node cli.js inspect <contractAddress> [chain]${c.reset}
+  ${c.bGreen}sniper inspect <contractAddress> [chain]${c.reset}
       Inspect drop schedules (GTD, FCFS, Public), prices, limits, and wallet checks.
-      ${c.gray}Example: node cli.js inspect 0x889c162A52277d332F09025eB0E63b36E08f9064 base${c.reset}
+      ${c.gray}Example: sniper inspect 0x889c162A52277d332F09025eB0E63b36E08f9064 base${c.reset}
 
   ${c.bYellow}${c.bold}[ 4. ULTRA-FAST ZERO-LATENCY SNIPING ]${c.reset}
-  ${c.bGreen}node cli.js snipe <contractAddress> [chain] [walletId or 'all'] [--qty N] [--speed fast|turbo|war]${c.reset}
+  ${c.bGreen}sniper snipe <contractAddress> [chain] [walletId or 'all'] [--qty N] [--speed fast|turbo|war]${c.reset}
       Pre-sign transactions into memory, stream countdown, and burst fire at 0ms.
       ${c.gray}Options:${c.reset}
         --qty <N>              Number of NFTs per wallet (Default: 1)
         --speed fast|turbo|war Priority fee boost (+0%, +35%, +100%)
-      ${c.gray}Example: node cli.js snipe 0x889c...9064 base all --qty 2 --speed turbo${c.reset}
+      ${c.gray}Example: sniper snipe 0x889c...9064 base all --qty 2 --speed turbo${c.reset}
 
   ${c.bYellow}${c.bold}[ SUPPORTED NETWORKS ]${c.reset}
     ${c.cyan}ethereum${c.reset} (1)  |  ${c.cyan}base${c.reset} (8453)  |  ${c.cyan}robinhood${c.reset} (48)  |  ${c.cyan}ink${c.reset} (57073)
@@ -77,7 +77,7 @@ async function main() {
     const id = args[1];
     const key = args[2];
     if (!id || !key) {
-      ui.log('WARN', `Usage: ${c.white}node cli.js set-wallet <1-5> <privateKey>${c.reset}`);
+      ui.log('WARN', `Usage: ${c.white}sniper set-wallet <1-5> <privateKey>${c.reset}`);
       return;
     }
     const res = walletManager.setWalletKey(id, key);
@@ -112,7 +112,7 @@ async function main() {
     const amt = args[1];
     const chainKey = args[2] || 'base';
     if (!amt) {
-      ui.log('WARN', `Usage: ${c.white}node cli.js fund <amountEth> [chain]${c.reset}`);
+      ui.log('WARN', `Usage: ${c.white}sniper fund <amountEth> [chain]${c.reset}`);
       return;
     }
     ui.section(`AUTO-FUND SUB-WALLETS | ${chainKey.toUpperCase()}`);
@@ -178,7 +178,7 @@ async function main() {
     const contract = args[1];
     const chainKey = args[2] || 'base';
     if (!contract) {
-      ui.log('WARN', `Usage: ${c.white}node cli.js inspect <contractAddress> [chain]${c.reset}`);
+      ui.log('WARN', `Usage: ${c.white}sniper inspect <contractAddress> [chain]${c.reset}`);
       return;
     }
 
@@ -269,7 +269,7 @@ async function main() {
     const targetMode = args[3] || 'all';
 
     if (!contract) {
-      ui.log('WARN', `Usage: ${c.white}node cli.js snipe <contractAddress> [chain] [walletId or 'all']${c.reset}`);
+      ui.log('WARN', `Usage: ${c.white}sniper snipe <contractAddress> [chain] [walletId or 'all']${c.reset}`);
       return;
     }
 
@@ -292,7 +292,7 @@ async function main() {
     }
 
     if (selectedWallets.length === 0) {
-      ui.log('ERROR', `No active wallets configured. Run ${c.white}node cli.js set-wallet <1-5> <key>${c.reset} first.`);
+      ui.log('ERROR', `No active wallets configured. Run ${c.white}sniper set-wallet <1-5> <key>${c.reset} first.`);
       return;
     }
 
