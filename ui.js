@@ -47,48 +47,43 @@ const ui = {
 
   banner() {
     console.log(`
-${c.bCyan}${c.bold}+==============================================================================+
-|                                                                              |
-|   ${c.bWhite}OPENSEA SEADROP & MULTI-CHAIN ULTRA SNIPER${c.bCyan}   ${c.bGreen}[v1.0.0]${c.bCyan}                   |
-|   ${c.gray}Zero-Latency In-Memory Pre-Signing * Multi-RPC Racing * Atomic Pre-Fire    ${c.bCyan}|
-|                                                                              |
-+==============================================================================+${c.reset}`);
+  ${c.bCyan}${c.bold}OPENSEA SEADROP & MULTI-CHAIN ULTRA SNIPER${c.reset}  ${c.bgCyan}${c.black}${c.bold} v1.0.0 ${c.reset}
+  ${c.gray}Private Mempool * Multi-RPC Racing * Atomic Pre-Sign * Cold Vault Routing${c.reset}
+  ${c.gray}------------------------------------------------------------------------${c.reset}`);
   },
 
   section(title) {
-    const totalLen = 78;
-    const titlePart = `=== [ ${title} ] `;
-    const rem = Math.max(4, totalLen - titlePart.length);
-    console.log(`\n${c.bCyan}${c.bold}=== [ ${c.bWhite}${title}${c.bCyan} ] ${"=".repeat(rem)}${c.reset}\n`);
+    console.log(`\n  ${c.bCyan}${c.bold}>> ${title}${c.reset}`);
+    console.log(`  ${c.gray}------------------------------------------------------------------------${c.reset}`);
   },
 
   divider() {
-    console.log(`${c.gray}${"-".repeat(78)}${c.reset}`);
+    console.log(`  ${c.gray}------------------------------------------------------------------------${c.reset}`);
   },
 
   badge(text) {
     const t = String(text).toUpperCase();
     if (t === 'ACTIVE' || t === 'READY' || t === 'YES' || t === 'SUCCESS' || t === 'TRUE') {
-      return `${c.bgGreen}${c.bold}${c.black} ${text} ${c.reset}`;
+      return `${c.bGreen}${c.bold}[ OK / READY ]${c.reset}`;
     }
     if (t.includes('UPCOMING')) {
-      return `${c.bgCyan}${c.bold}${c.black} ${text} ${c.reset}`;
+      return `${c.bCyan}[ UPCOMING ]${c.reset}`;
     }
     if (t === 'PAUSED' || t === 'WARN' || t === 'WAITING') {
-      return `${c.bgYellow}${c.bold}${c.black} ${text} ${c.reset}`;
+      return `${c.bYellow}[ WAITING ]${c.reset}`;
     }
     if (t === 'ENDED' || t === 'NO' || t === 'ERROR' || t === 'FALSE' || t.includes('FAIL') || t.includes('INSUFFICIENT')) {
-      return `${c.bgRed}${c.bold}${c.white} ${text} ${c.reset}`;
+      return `${c.bRed}[ NO / LOW_FUNDS ]${c.reset}`;
     }
     if (t === 'NO_KEY' || t === 'INACTIVE') {
-      return `${c.bgDarkGray}${c.white} ${text} ${c.reset}`;
+      return `${c.gray}[ NOT SET ]${c.reset}`;
     }
-    return `${c.bgBlue}${c.bold}${c.white} ${text} ${c.reset}`;
+    return `${c.cyan}[ ${text} ]${c.reset}`;
   },
 
   infoRow(label, value, valColor = c.bWhite) {
-    const padLabel = label.padEnd(18, ' ');
-    console.log(`  ${c.cyan}${padLabel}${c.reset} :  ${valColor}${value}${c.reset}`);
+    const padLabel = label.padEnd(20, ' ');
+    console.log(`  ${c.gray}*${c.reset} ${c.white}${padLabel}${c.reset} :  ${valColor}${value}${c.reset}`);
   },
 
   renderTable(headers, rows) {
