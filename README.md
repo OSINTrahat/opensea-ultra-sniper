@@ -179,6 +179,45 @@ Every sub-screen (network picker, speed tier, wallet slot) uses the same arrow-k
 
 **Contract input:** when it asks for the contract, paste either the raw `0x…` address or an OpenSea / Basescan / mint-page link — the bot extracts the address and, when the link contains one, switches to that chain automatically.
 
+#### What the snipe flow shows before you mint
+
+```text
+  DROP INFO | BASE
+  Contract        0x889c162A52277d332F09025eB0E63b36E08f9064
+  Network         BASE (Chain ID: 8453)
+  Protocol        OpenSea SeaDrop (0x00005EA00Ac477B1030CE78506496e8C2dE24bf5)
+  Live Gas        0.008 Gwei (~0.000002 ETH)
+
+  MINT PHASES & COUNTDOWN
+  Phase                       Price        Starts                   Time Left    Max  Status
+  #1 Allowlist / GTD / FCFS   0.0005 ETH   11/11/2026, 9:00:00 PM   ended        2    ENDED
+  #2 Public Mint              0.0008 ETH   11/11/2026, 10:30:00 PM  in 15m 0s    3    UPCOMING
+
+  info  Next: Public Mint opens in 15m 0s (11/11/2026, 10:30:00 PM).
+
+  WALLET ELIGIBILITY
+  #  Wallet              Address       Phase        Needed        Balance       Verdict
+  1  Wallet 1 (Master)   0x71C7…976F   Public Mint  0.00080 ETH   0.01230 ETH   ✓ ELIGIBLE
+  2  Wallet 2            0x2546…Ec30   Public Mint  0.00080 ETH   0.00040 ETH   LOW FUNDS
+  3  Wallet 3            0xbDA5…197E   Public Mint  0.00080 ETH   0.02000 ETH   LIMIT HIT
+  4  Wallet 4            —             Public Mint  0.00080 ETH   —             NO KEY
+```
+*(Illustrative sample.)*
+
+Verdicts are computed live: `ELIGIBLE` (key + enough balance for price and gas), `LOW FUNDS`, `LIMIT HIT` (wallet already minted its max), `NO KEY`, `NOT SET`.
+
+#### Choosing who mints
+
+Right after the info screen you get:
+
+| Option | What happens |
+|---|---|
+| `1) Single wallet` | pick one slot (1–5) from your configured wallets |
+| `2) Multi parallel` | type the slots, e.g. `1 2 4 5` or `all` — those fire together |
+| `0) Cancel` | back to the menu |
+
+Slots without a key are skipped with a warning, and the chosen wallets are echoed before arming.
+
 ---
 
 ## Wallet Configuration (5-Wallet Modular Architecture)
@@ -386,6 +425,12 @@ sniper snipe https://opensea.io/assets/base/0x889c162A52277d332F09025eB0E63b36E0
 Executes the snipe using only a specific wallet slot (e.g. Wallet 1).
 ```bash
 sniper snipe <contractAddress | link> <chain> 1
+```
+
+#### Mode C: Custom Wallet Set
+Comma or space separated slots, fired in parallel:
+```bash
+sniper snipe <contractAddress | link> base 1,2,4
 ```
 
 **Execution Flow Output:**

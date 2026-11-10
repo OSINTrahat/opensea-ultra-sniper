@@ -108,10 +108,15 @@ async function inspectDrop(nftContractAddress, chainKey = 'base', targetWallets 
       name: w.name,
       address: w.address,
       targetSlot: slot,
+      phase: slot,
       mintedCount: mintedSoFar,
+      maxPerWallet: targetPhase ? targetPhase.maxPerWallet : 0,
       currentBalance: `${ethBal.toFixed(5)} ${chain.symbol}`,
+      balanceEth: ethBal,
+      priceEth: requiredPrice,
       pricePerMint: `${requiredPrice} ${chain.symbol}`,
       hasFee: hasEnoughBalance ? 'YES' : 'NO',
+      hasKey: !!w.privateKey,
       readyToSnipe: hasEnoughBalance ? 'READY' : 'INSUFFICIENT_FUNDS'
     });
   }

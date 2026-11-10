@@ -151,7 +151,7 @@ const ui = {
   screen(title, options, selectedIndex = 0, opts = {}) {
     const termW = termWidth();
     const termH = process.stdout.rows || 30;
-    const showBanner = opts.banner !== false;
+    const showBanner = opts.banner === true;
     const lines = [];
 
     if (showBanner) {
@@ -241,9 +241,9 @@ const ui = {
   },
 
   badge(text) {
-    const t = String(text).toUpperCase();
-    if (t === 'ACTIVE' || t === 'READY' || t === 'YES' || t === 'SUCCESS' || t === 'TRUE') {
-      return `${c.bGreen}READY${c.reset}`;
+    const t = String(text).toUpperCase().replace(/_/g, ' ');
+    if (t === 'ACTIVE' || t === 'READY' || t === 'YES' || t === 'SUCCESS' || t === 'TRUE' || t === 'ELIGIBLE' || t === 'FUNDED' || t === 'SWEPT_SUCCESS') {
+      return `${c.bGreen}✓ ${t === 'YES' ? 'READY' : t}${c.reset}`;
     }
     if (t.includes('UPCOMING')) {
       return `${c.bCyan}UPCOMING${c.reset}`;
@@ -251,11 +251,11 @@ const ui = {
     if (t === 'PAUSED' || t === 'WARN' || t === 'WAITING') {
       return `${c.bYellow}WAITING${c.reset}`;
     }
-    if (t === 'ENDED' || t === 'NO' || t === 'ERROR' || t === 'FALSE' || t.includes('FAIL') || t.includes('INSUFFICIENT')) {
-      return `${c.bRed}FAILED${c.reset}`;
+    if (t === 'NO KEY' || t === 'NOT SET' || t === 'UNKNOWN' || t === 'INACTIVE') {
+      return `${c.gray}${t}${c.reset}`;
     }
-    if (t === 'NO_KEY' || t === 'INACTIVE') {
-      return `${c.gray}NOT SET${c.reset}`;
+    if (t === 'ENDED' || t === 'NO' || t === 'ERROR' || t === 'FALSE' || t.includes('FAIL') || t.includes('INSUFFICIENT') || t.includes('LOW') || t.includes('LIMIT')) {
+      return `${c.bRed}${t}${c.reset}`;
     }
     return `${c.white}${text}${c.reset}`;
   },

@@ -17,7 +17,30 @@ const config = require('./sniper_config');
 const ui = require('./ui');
 const { c } = ui;
 
+let pipedLines = [];
+let pipedWaiters = [];
+let pipedReady = false;
+
+function initPipedReader() {
+  if (pipedReady) return;
+  pipedReady = true;
+  const rl = readline.createInterface({ input: process.stdin, terminal: false });
+  rl.on('line', line => {
+    const waiter = pipedWaiters.shift();
+    if (waiter) waiter(line.trim());
+    else pipedLines.push(line.trim());
+  });
+}
+
 function askQuestion(query) {
+  // Piped input arrives in one burst: queue the lines so each prompt gets its own.
+  if (!process.stdin.isTTY) {
+    process.stdout.write(query);
+    initPipedReader();
+    if (pipedLines.length) return Promise.resolve(pipedLines.shift());
+    return new Promise(resolve => pipedWaiters.push(resolve));
+  }
+
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
@@ -154,7 +177,18 @@ async function interactiveMenu() {
     }
     const contract = target.address;
     const chain = target.chain || await selectChainInteractive('base');
-    const qtyStr = await askQuestion(`  Quantity per wallet (default: 1): `);
+
+    const info = await loadDropInfo(contract, chain);
+    if (!info.ok) {
+      ui.log('ERROR', info.error);
+      return;
+    }
+    renderDropInfo(info);
+
+    const ids = await chooseTargets(walletManager.loadWallets());
+    if (!ids) return;
+
+    const qtyStr = await askQuestion(`  Quantity per NFT wallet (default: 1): `);
     const qty = parseInt(qtyStr, 10) || 1;
     
     const speed = await selectOptionArrow('Priority Gas Boost Tier:', [
@@ -163,7 +197,7 @@ async function interactiveMenu() {
       { label: '3) War', hint: '(+100% Tip - Frontrun MEV)', value: 'war' }
     ]);
 
-    return executeSnipe(contract, chain, 'all', qty, speed);
+    return executeSnipe(contract, chain, ids, qty, speed);
   }
 
   if (choice === '2') {
@@ -282,83 +316,192 @@ async function executeSweep(chainKey) {
   }
 }
 
-async function executeInspect(contract, chainKey) {
-  ui.section(`CONTRACT INSPECTOR | ${chainKey.toUpperCase()}`);
-  ui.log('INFO', `Analyzing contract: ${c.cyan}${contract}${c.reset}`);
+function shortAddr(a) {
+  if (!a) return '—';
+  return a.length > 12 ? `${a.slice(0, 6)}…${a.slice(-4)}` : a;
+}
 
+function fmtDur(totalSec) {
+  const s = Math.max(0, Math.floor(totalSec));
+  if (s < 60) return `${s}s`;
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m ${s % 60}s`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ${m % 60}m`;
+  const d = Math.floor(h / 24);
+  return `${d}d ${h % 24}h`;
+}
+
+function phaseTiming(p) {
+  const now = Math.floor(Date.now() / 1000);
+  if (p.rawStart && now < p.rawStart) return `in ${fmtDur(p.rawStart - now)}`;
+  if (p.rawEnd && now < p.rawEnd) return `${fmtDur(p.rawEnd - now)} left`;
+  return 'ended';
+}
+
+/** Pull live drop data once, so the dashboard and the mint flow share it. */
+async function loadDropInfo(contract, chainKey) {
   const [wallets, liveGas, detection] = await Promise.all([
     walletManager.loadWallets(),
     gasTracker.getLiveGas(chainKey),
     universalDetector.detectContractMintMethod(contract, chainKey)
   ]);
+  if (!detection.success) return { ok: false, error: detection.error || 'Failed to detect contract', wallets, liveGas };
 
-  if (!detection.success) {
-    ui.log('ERROR', `${detection.error || 'Failed to detect contract'}`);
+  let seadrop = null;
+  if (detection.type === 'SEADROP') {
+    seadrop = await dropInspector.inspectDrop(contract, chainKey, wallets);
+  } else {
+    const chain = config.CHAINS[chainKey] || config.CHAINS.base;
+    const provider = new ethers.JsonRpcProvider(chain.rpc[0]);
+    await Promise.all(wallets.map(async w => {
+      if (!w.address) return;
+      try { w.balanceEth = parseFloat(ethers.formatEther(await provider.getBalance(w.address))); } catch { /* ignore */ }
+    }));
+  }
+  return { ok: true, wallets, liveGas, detection, seadrop, chainKey, contract };
+}
+
+/** Print the full drop dashboard: phases, countdowns, and per-wallet eligibility. */
+function renderDropInfo(info) {
+  const { contract, chainKey, wallets, liveGas, detection, seadrop } = info;
+  const gasEth = parseFloat(liveGas.estimatedCostEth || '0');
+
+  ui.section(`DROP INFO | ${chainKey.toUpperCase()}`);
+  ui.infoRow('Contract', contract);
+  ui.infoRow('Network', `${chainKey.toUpperCase()} (Chain ID: ${config.CHAINS[chainKey].id})`);
+  ui.infoRow('Protocol', seadrop ? `OpenSea SeaDrop (${seadrop.seadropAddress})` : 'Generic ERC-721 mint');
+  ui.infoRow('Live Gas', `${liveGas.gwei} Gwei (~${liveGas.estimatedCostEth} ${liveGas.symbol})`);
+
+  let priceEth = 0;
+  let activePhaseName = 'Public';
+  let phases = [];
+
+  if (seadrop && seadrop.phases.length) {
+    phases = seadrop.phases;
+    const now = Math.floor(Date.now() / 1000);
+    const active = phases.find(p => now >= p.rawStart && now < p.rawEnd);
+    const upcoming = phases.filter(p => now < p.rawStart).sort((a, b) => a.rawStart - b.rawStart)[0];
+    const target = active || upcoming || phases[phases.length - 1];
+    priceEth = parseFloat(String(target.priceEth).replace(/[^\d.]/g, '')) || 0;
+    activePhaseName = target.phaseName;
+
+    ui.section('MINT PHASES & COUNTDOWN');
+    ui.renderTable(
+      ['Phase', 'Price', 'Starts', 'Time Left', 'Max', 'Status'],
+      phases.map((p, i) => [
+        `#${i + 1} ${p.phaseName}`,
+        p.priceEth,
+        p.startTime,
+        phaseTiming(p),
+        String(p.maxPerWallet),
+        ui.badge(p.status.replace(/\s*\(.*\)/, ''))
+      ])
+    );
+
+    const now2 = Math.floor(Date.now() / 1000);
+    if (active) {
+      ui.log('INFO', `${c.bGreen}${active.phaseName}${c.reset} is LIVE now — ${c.bYellow}${fmtDur(active.rawEnd - now2)}${c.reset} left.`);
+    } else if (upcoming) {
+      ui.log('INFO', `Next: ${c.cyan}${upcoming.phaseName}${c.reset} opens in ${c.bYellow}${fmtDur(upcoming.rawStart - now2)}${c.reset} (${upcoming.startTime}).`);
+    } else {
+      ui.log('WARN', 'All phases have ended for this drop.');
+    }
+  } else {
+    priceEth = parseFloat(detection.estimatedPriceEth || '0') || 0;
+    ui.section('MINT SCHEDULE');
+    ui.infoRow('Type', 'Generic Web3 / Custom Mint');
+    ui.infoRow('Functions', (detection.methodsFound || []).join(', ') || 'Fallback mint() supported');
+    ui.infoRow('Price', `${priceEth} ETH`);
+    ui.infoRow('Status', detection.isPaused ? 'PAUSED' : 'OPEN');
+  }
+
+  ui.section('WALLET ELIGIBILITY');
+  const rows = wallets.map(w => {
+    const s = seadrop ? seadrop.wallets.find(x => x.id === w.id) : null;
+    const balEth = s ? s.balanceEth : (w.balanceEth !== undefined ? w.balanceEth : null);
+    const need = priceEth + gasEth;
+    let verdict = 'ELIGIBLE';
+    if (!w.privateKey) verdict = 'NO KEY';
+    else if (!w.address) verdict = 'NOT SET';
+    else if (balEth === null) verdict = 'UNKNOWN';
+    else if (balEth < need) verdict = 'LOW FUNDS';
+    else if (s && s.maxPerWallet > 0 && s.mintedCount >= s.maxPerWallet) verdict = 'LIMIT HIT';
+    return [
+      String(w.id),
+      w.name || `Wallet ${w.id}`,
+      shortAddr(w.address),
+      s ? s.phase : activePhaseName,
+      `${need.toFixed(5)} ETH`,
+      balEth === null ? '—' : `${balEth.toFixed(5)} ETH`,
+      ui.badge(verdict)
+    ];
+  });
+
+  ui.renderTable(['#', 'Wallet', 'Address', 'Phase', 'Needed', 'Balance', 'Verdict'], rows);
+
+  const ready = rows.filter(r => !/NO KEY|NOT SET|LOW FUNDS|UNKNOWN|LIMIT/.test(ui.helpers.stripAnsi(r[6])));
+  ui.log('INFO', `${c.bGreen}${ready.length}${c.reset} of ${wallets.length} wallets ready to mint at ${c.bYellow}${priceEth} ETH${c.reset} + gas.`);
+
+  return { priceEth, activePhaseName, phases };
+}
+
+/** Single vs multi wallet selection. Returns an array of wallet ids, or null. */
+async function chooseTargets(allWallets) {
+  const configured = allWallets.filter(w => w.privateKey);
+  const mode = await selectOptionArrow('How do you want to mint?', [
+    { label: '1) Single wallet', hint: '(one wallet, simplest)', value: 'single' },
+    { label: '2) Multi parallel', hint: '(several wallets fire together)', value: 'multi' },
+    { label: '0) Cancel', hint: '(back to menu)', value: 'cancel', key: '0' }
+  ]);
+
+  if (mode === 'cancel') return null;
+
+  if (!configured.length) {
+    ui.log('ERROR', `No wallet keys yet. Use ${c.white}7) Set / Update Wallet Key${c.reset} first.`);
+    return null;
+  }
+
+  if (mode === 'single') {
+    const pick = await selectOptionArrow(
+      'Pick wallet to mint with:',
+      configured.map(w => ({ label: `${w.id}) ${w.name}`, hint: shortAddr(w.address), value: String(w.id) }))
+    );
+    return [Number(pick)];
+  }
+
+  const raw = await askQuestion(`  Wallet numbers (e.g. 1 2 4 5, or all): `);
+  const text = String(raw || '').trim().toLowerCase();
+  let ids;
+  if (!text || text === 'all') {
+    ids = configured.map(w => w.id);
+  } else {
+    ids = [...new Set((text.match(/\d+/g) || []).map(Number))].filter(n => n >= 1 && n <= 5);
+  }
+
+  const chosen = configured.filter(w => ids.includes(w.id));
+  const missing = ids.filter(id => !configured.some(w => w.id === id));
+  const notSet = allWallets.filter(w => ids.includes(w.id) && !w.privateKey).map(w => w.id);
+
+  if (!chosen.length) {
+    ui.log('ERROR', 'None of those wallet slots have a key. Nothing to mint with.');
+    return null;
+  }
+  if (missing.length) ui.log('WARN', `Ignored unknown slot(s): ${missing.join(', ')}.`);
+  if (notSet.length) ui.log('WARN', `No key in slot(s): ${notSet.join(', ')} — skipped.`);
+
+  console.log(`\n  ${c.mintNeon}Selected${c.reset}  ${chosen.map(w => `${c.white}${w.id}${c.reset} ${c.gray}${shortAddr(w.address)}${c.reset}`).join('   ')}`);
+  return chosen.map(w => w.id);
+}
+
+async function executeInspect(contract, chainKey) {
+  ui.log('INFO', `Analyzing contract: ${c.cyan}${contract}${c.reset}`);
+  const info = await loadDropInfo(contract, chainKey);
+  if (!info.ok) {
+    ui.log('ERROR', info.error);
     return;
   }
-
-  if (detection.type === 'SEADROP') {
-    const result = await dropInspector.inspectDrop(contract, chainKey, wallets);
-
-    console.log(`\n  ${c.bYellow}${c.bold}METADATA SUMMARY${c.reset}`);
-    ui.infoRow('Network', `${result.chain} (Chain ID: ${result.chainId})`);
-    ui.infoRow('Contract', result.nftContract);
-    ui.infoRow('Protocol', `OpenSea SeaDrop (${result.seadropAddress})`);
-    ui.infoRow('Current Gas', `${liveGas.gwei} Gwei (~${liveGas.estimatedCostEth} ${liveGas.symbol} per mint)`);
-
-    ui.section(`SCHEDULED DROP PHASES (GTD / FCFS / PUBLIC)`);
-    if (result.phases.length > 0) {
-      ui.renderTable(
-        ['Phase', 'Price', 'Start Time', 'End Time', 'Max Mint', 'Status'],
-        result.phases.map((p, idx) => [
-          `#${idx + 1}: ${p.phaseName}`,
-          p.priceEth,
-          p.startTime,
-          p.endTime,
-          String(p.maxPerWallet),
-          ui.badge(p.status)
-        ])
-      );
-    } else {
-      ui.log('INFO', 'No active SeaDrop schedules registered for this contract.');
-    }
-
-    ui.section(`5-WALLET READINESS & FEE VERIFICATION`);
-    ui.renderTable(
-      ['Wallet', 'Address', 'Target Phase', 'Balance', 'Mint Price', 'Fee Ready', 'Status'],
-      result.wallets.map(w => [
-        `${w.id}: ${w.name}`,
-        w.address,
-        w.targetSlot,
-        w.currentBalance,
-        w.pricePerMint,
-        ui.badge(w.hasFee ? 'YES' : 'NO'),
-        ui.badge(w.readyToSnipe)
-      ])
-    );
-  } else {
-    console.log(`\n  ${c.bYellow}${c.bold}CUSTOM CONTRACT METADATA${c.reset}`);
-    ui.infoRow('Network', chainKey.toUpperCase());
-    ui.infoRow('Contract', contract);
-    ui.infoRow('Contract Type', 'Generic Web3 / Custom Mint');
-    ui.infoRow('Detected Functions', detection.methodsFound.join(', ') || 'Fallback mint() supported');
-    ui.infoRow('Price Detected', `${detection.estimatedPriceEth} ETH`);
-    ui.infoRow('Contract Status', detection.isPaused ? 'PAUSED' : 'ACTIVE');
-    ui.infoRow('Current Gas', `${liveGas.gwei} Gwei (~${liveGas.estimatedCostEth} ${liveGas.symbol} per mint)`);
-
-    ui.section(`5-WALLET READINESS & FEE VERIFICATION`);
-    const reqPrice = parseFloat(detection.estimatedPriceEth || '0');
-    ui.renderTable(
-      ['Wallet', 'Address', 'Mint Price', 'Key Loaded', 'Status'],
-      wallets.map(w => [
-        `${w.id}: ${w.name}`,
-        w.address || 'Unconfigured',
-        `${reqPrice} ETH`,
-        ui.badge(w.privateKey ? 'YES' : 'NO'),
-        ui.badge(w.privateKey ? 'READY' : 'NO_KEY')
-      ])
-    );
-  }
+  renderDropInfo(info);
 }
 
 async function executeSnipe(contract, chainKey, targetMode = 'all', quantity = 1, speedTier = 'turbo') {
@@ -367,7 +510,11 @@ async function executeSnipe(contract, chainKey, targetMode = 'all', quantity = 1
   const allWallets = walletManager.loadWallets();
   let selectedWallets = [];
 
-  if (targetMode === 'all') {
+  if (Array.isArray(targetMode)) {
+    selectedWallets = allWallets.filter(w => targetMode.includes(w.id) && w.privateKey);
+    const names = selectedWallets.map(w => `${w.id}:${shortAddr(w.address)}`).join('  ');
+    ui.log('INFO', `Target Mode: ${c.cyan}${selectedWallets.length === 1 ? 'SINGLE' : 'MULTI PARALLEL'}${c.reset} -> ${names}`);
+  } else if (targetMode === 'all') {
     selectedWallets = allWallets.filter(w => w.privateKey);
     ui.log('INFO', `Target Mode: ${c.bGreen}ALL (${selectedWallets.length} active wallets for parallel blast)${c.reset}`);
   } else {
@@ -571,6 +718,10 @@ async function main() {
     let chainKey = args[2];
     if (!chainKey) chainKey = target.chain || await selectChainInteractive('base');
     let targetMode = args[3] || 'all';
+    if (targetMode !== 'all' && /^[\d,\s]+$/.test(targetMode)) {
+      const parsedIds = [...new Set(targetMode.match(/\d+/g).map(Number))].filter(n => n >= 1 && n <= 5);
+      if (parsedIds.length) targetMode = parsedIds;
+    }
     
     let quantity = 1;
     let speedTier = 'turbo';
@@ -578,10 +729,21 @@ async function main() {
       if (args[i] === '--qty' && args[i + 1]) quantity = parseInt(args[i + 1], 10) || 1;
       if (args[i] === '--speed' && args[i + 1]) speedTier = args[i + 1].toLowerCase();
     }
+
+    const info = await loadDropInfo(contract, chainKey);
+    if (!info.ok) {
+      ui.log('ERROR', info.error);
+      return;
+    }
+    renderDropInfo(info);
     return executeSnipe(contract, chainKey, targetMode, quantity, speedTier);
   }
 
   console.log(`  ${c.bYellow}Unknown command: ${command}. Run ${c.white}sniper${c.bYellow} for interactive menu.${c.reset}`);
 }
 
-main().catch(console.error);
+if (require.main === module) {
+  main().catch(console.error);
+}
+
+module.exports = { renderDropInfo, loadDropInfo, chooseTargets, executeSnipe, fmtDur, phaseTiming };
