@@ -108,7 +108,17 @@ The suite natively supports the following EVM networks with pre-configured high-
 ---
 
 #### Method B: Using Git Clone (For Developers)
-Requires [Git](https://git-scm.com/) installed on your machine:
+
+> [!IMPORTANT]
+> **Git MUST be installed** on your computer before running `git clone`. If you don't have Git installed, Windows will show an error: `'git' is not recognized`.
+> - **Download & Install Git:** [git-scm.com/download/win](https://git-scm.com/download/win)
+> - **Or install in 1 second via PowerShell:**
+>   ```powershell
+>   winget install --id Git.Git -e --source winget
+>   ```
+> *(Restart your terminal after installing Git)*
+
+Once Git is installed, run:
 ```powershell
 # 1. Clone the repository
 git clone https://github.com/OSINTrahat/opensea-ultra-sniper.git
