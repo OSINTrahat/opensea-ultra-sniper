@@ -92,22 +92,28 @@ The suite natively supports the following EVM networks with pre-configured high-
 
 ### 🪟 Windows Setup Guide (PC / Laptop)
 
-#### Method A: Direct ZIP Download (Easiest — No Git Required)
-1. **[Click here to Download ZIP](https://github.com/OSINTrahat/opensea-ultra-sniper/archive/refs/heads/main.zip)** directly.
-2. Right-click the downloaded `.zip` file and select **"Extract All"**.
-3. Open **Command Prompt (CMD)** or **PowerShell** inside the extracted folder:
-   ```cmd
-   npm install
-   npm link
-   ```
-4. Now simply type:
-   ```cmd
-   sniper
-   ```
+#### 🚀 Method 1: 1-Click Auto Setup (Zero Coding / Easiest)
+1. **[Click here to Download ZIP](https://github.com/OSINTrahat/opensea-ultra-sniper/archive/refs/heads/main.zip)** and extract the folder.
+2. Make sure [Node.js](https://nodejs.org/) is installed.
+3. Double-click **`setup.bat`** — it will automatically install everything for you!
+4. Double-click **`run.bat`** anytime to launch the bot!
 
 ---
 
-#### Method B: Using Git Clone (For Developers)
+#### 💻 Method 2: Command Prompt / PowerShell Setup
+Open **CMD** inside the folder and run:
+```cmd
+npm install
+npm link
+```
+Now simply type:
+```cmd
+sniper
+```
+
+---
+
+#### 🛠️ Method 3: Using Git Clone (For Developers)
 
 > [!IMPORTANT]
 > **Git MUST be installed** on your computer before running `git clone`. If you don't have Git installed, Windows will show an error: `'git' is not recognized`.
