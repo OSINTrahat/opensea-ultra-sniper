@@ -143,6 +143,40 @@ async function selectChainInteractive(defaultChain = 'base') {
   return selectOptionArrow('Select Blockchain Network:', opts, { startIndex: start });
 }
 
+function showHelp() {
+  ui.banner();
+  console.log(`
+  ${c.bWhite}${c.bold}INTERACTIVE MODE:${c.reset}
+    Just run ${c.bGreen}sniper${c.reset} (or double-click ${c.bGreen}run.bat${c.reset}) and pick a menu item.
+    ${c.gray}1${c.reset} Snipe / inspect a drop   ${c.gray}2${c.reset} Live gas   ${c.gray}3${c.reset} Balances
+    ${c.gray}4${c.reset} Auto-fund wallets        ${c.gray}5${c.reset} Sweep back to vault
+    ${c.gray}6${c.reset} Set / update wallet key  ${c.gray}7${c.reset} Set recipient vault
+
+  ${c.bWhite}${c.bold}DIRECT CLI COMMANDS:${c.reset}
+    ${c.bGreen}sniper snipe [contract|link] [chain] [all|1|1,2,4]${c.reset}
+        Full drop info, then mint. ${c.gray}--qty N  --speed fast|turbo|war${c.reset}
+    ${c.bGreen}sniper inspect [contract|link] [chain]${c.reset}
+        Read-only: phases, countdown, eligibility. Never signs, never spends.
+    ${c.bGreen}sniper gas [chain]${c.reset}                   Stream live gas fees
+    ${c.bGreen}sniper wallets [chain]${c.reset}               Check all 5 wallet balances
+    ${c.bGreen}sniper fund [amountEth] [chain]${c.reset}      Send gas from Wallet 1 to 2-5
+    ${c.bGreen}sniper sweep [chain]${c.reset}                 Withdraw leftover ETH to the vault
+    ${c.bGreen}sniper set-wallet <1-5> <key>${c.reset}        Save or update a private key
+    ${c.bGreen}sniper recipient [address]${c.reset}           Set the cold vault address
+
+  ${c.bWhite}${c.bold}TIPS:${c.reset}
+    ${c.gray}·${c.reset} A raw ${c.white}0x…${c.reset} address or an OpenSea / Basescan / mint link both work.
+    ${c.gray}·${c.reset} Arrow keys ${c.white}↑ ↓${c.reset} move, ${c.white}Enter${c.reset} selects, number keys jump, ${c.white}q${c.reset} quits.
+    ${c.gray}·${c.reset} In multi mint, type ${c.white}1 2 4 5${c.reset} or ${c.white}all${c.reset}; slots without a key are skipped.
+
+  ${c.bWhite}${c.bold}SAFETY:${c.reset}
+    ${c.gray}·${c.reset} Never share your private key — keys stay in ${c.white}wallets.json${c.reset} on this device only.
+    ${c.gray}·${c.reset} Use a burner wallet with small funds, not your main wallet.
+
+  ${c.gray}Chains:${c.reset} base · ethereum · robinhood · ink
+`);
+}
+
 async function interactiveMenu() {
   const choice = await selectOptionArrow('Main Menu', [
     { label: '1) Snipe / Mint Drop', hint: '(Paste address or OpenSea link)', value: 'snipe' },
@@ -152,6 +186,7 @@ async function interactiveMenu() {
     { label: '5) Sweep Balances', hint: '(Withdraw leftover ETH to Vault)', value: 'sweep' },
     { label: '6) Set / Update Wallet Key', hint: '(Save private key 1 to 5)', value: 'key' },
     { label: '7) Set Recipient Cold Vault', hint: '(Direct delivery address)', value: 'recipient' },
+    { label: '8) Help', hint: '(Commands, tips, safety)', value: 'help', key: '8' },
     { label: '0) Exit', hint: 'Close Super Mint', value: 'exit', key: '0' }
   ], { banner: true });
 
@@ -246,6 +281,12 @@ async function interactiveMenu() {
       ui.log('OK', res);
     }
     return;
+  }
+
+  if (choice === 'help') {
+    showHelp();
+    await askQuestion(`\n  Press Enter to go back to the menu... `);
+    return interactiveMenu();
   }
 
   console.log(`  ${c.gray}Exiting.${c.reset}`);
@@ -597,21 +638,7 @@ async function main() {
 
   // 2. Help
   if (command === 'help' || command === '--help' || command === '-h') {
-    ui.banner();
-    console.log(`
-  ${c.bWhite}${c.bold}INTERACTIVE MODE:${c.reset}
-    Simply run ${c.bGreen}sniper${c.reset} to open the interactive menu with options!
-
-  ${c.bWhite}${c.bold}DIRECT CLI COMMANDS:${c.reset}
-    ${c.bGreen}sniper gas [chain]${c.reset}                   Stream live gas fees (prompts chain if omitted)
-    ${c.bGreen}sniper wallets [chain]               ${c.reset}Check all 5 wallet balances
-    ${c.bGreen}sniper inspect [contract|link] [chain] ${c.reset}Read-only: phases, countdown, eligibility
-    ${c.bGreen}sniper snipe [contract|link] [chain]   ${c.reset}Launch zero-latency mint sniper
-    ${c.bGreen}sniper fund [amountEth] [chain]      ${c.reset}Auto-fund sub-wallets from Wallet 1
-    ${c.bGreen}sniper sweep [chain]                 ${c.reset}Withdraw leftover funds to Vault
-    ${c.bGreen}sniper set-wallet <1-5> <key>        ${c.reset}Save or update private key
-    ${c.bGreen}sniper recipient [address]           ${c.reset}Set cold vault address
-`);
+    showHelp();
     return;
   }
 

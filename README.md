@@ -162,6 +162,7 @@ The branded **SUPER MINT** opening page appears, and every action is one keypres
   │      5   Sweep Balances          (Withdraw leftover ETH to Vault)        │
   │      6   Set / Update Wallet Key (Save private key 1 to 5)               │
   │      7   Set Recipient Vault     (Direct delivery address)               │
+  │      8   Help                    (Commands, tips, safety)                │
   │      0   Exit                    (Close Super Mint)                      │
   ├──────────────────────────────────────────────────────────────────────────┤
   │  ↑↓ move    ↵ select    number keys    q quit                           │
@@ -171,7 +172,7 @@ The branded **SUPER MINT** opening page appears, and every action is one keypres
 
 **Three ways to pick, whichever feels natural:**
 - **Arrow keys:** `↑` / `↓` to move the green pointer, `Enter` to confirm.
-- **Number keys:** press `1`–`7` (or `0` to exit) and it selects instantly.
+- **Number keys:** press `1`–`8` (or `0` to exit) and it selects instantly.
 - **Vim keys:** `j` / `k` move, `q` quits.
 
 Every sub-screen (network picker, speed tier, wallet slot) uses the same arrow-key picker, so there is nothing to type except the contract and quantities.
