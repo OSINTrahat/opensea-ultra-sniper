@@ -24,31 +24,45 @@ class UniversalSniper {
     this.seadropAddr = config.SEADROP_ADDRESSES[this.chain.id];
   }
 
-  // Pre-sign transactions in advance
-  async armWallets(wallets, targetContract, isSeaDrop = true, customData = null, customPriceWei = 0n, targetTimeSec = null, recipientAddress = null) {
+  // Pre-sign transactions in advance with quantity and speed tier
+  async armWallets(wallets, targetContract, isSeaDrop = true, customData = null, customPriceWei = 0n, targetTimeSec = null, recipientAddress = null, quantity = 1, speedTier = 'fast') {
     const armedTransactions = [];
 
-    let lockedPrice = customPriceWei;
+    const qty = BigInt(quantity || 1);
+    let lockedPrice = customPriceWei * qty;
     let lockedStartTime = targetTimeSec || Math.floor(Date.now() / 1000);
 
     if (isSeaDrop) {
       const seadrop = new ethers.Contract(this.seadropAddr, config.SEADROP_ABI, this.provider);
       const publicDrop = await seadrop.getPublicDrop(targetContract);
-      lockedPrice = publicDrop.mintPrice;
+      lockedPrice = publicDrop.mintPrice * qty;
       lockedStartTime = Number(publicDrop.startTime);
     }
 
     ui.infoRow('Locked Target', targetContract, c.cyan);
+    ui.infoRow('Quantity/Wallet', `${quantity} NFT(s)`, c.bWhite);
     ui.infoRow('Locked Price', `${ethers.formatEther(lockedPrice)} ${this.chain.symbol}`, c.bGreen);
+    ui.infoRow('Speed Tier', speedTier.toUpperCase(), speedTier === 'war' ? c.bRed : (speedTier === 'turbo' ? c.bYellow : c.bGreen));
     ui.infoRow('Scheduled At', new Date(lockedStartTime * 1000).toLocaleString(), c.bYellow);
     if (recipientAddress) {
       ui.infoRow('Direct Vault', recipientAddress, c.bMagenta);
     }
 
     const feeData = await this.provider.getFeeData();
-    // 25% priority tip to guarantee top of block inclusion
-    const maxPriorityFeePerGas = feeData.maxPriorityFeePerGas ? (feeData.maxPriorityFeePerGas * 125n) / 100n : ethers.parseUnits('1.5', 'gwei');
-    const maxFeePerGas = feeData.maxFeePerGas ? (feeData.maxFeePerGas * 120n) / 100n : ethers.parseUnits('3', 'gwei');
+    
+    // Speed multiplier tiers
+    let prioMultiplier = 125n; // fast (+25%)
+    let maxMultiplier = 120n;
+    if (speedTier === 'turbo') {
+      prioMultiplier = 160n; // turbo (+60%)
+      maxMultiplier = 150n;
+    } else if (speedTier === 'war') {
+      prioMultiplier = 220n; // gas war (+120%)
+      maxMultiplier = 200n;
+    }
+
+    const maxPriorityFeePerGas = feeData.maxPriorityFeePerGas ? (feeData.maxPriorityFeePerGas * prioMultiplier) / 100n : ethers.parseUnits('2', 'gwei');
+    const maxFeePerGas = feeData.maxFeePerGas ? (feeData.maxFeePerGas * maxMultiplier) / 100n : ethers.parseUnits('4', 'gwei');
 
     for (const w of wallets) {
       if (!w.privateKey) continue;
@@ -61,13 +75,12 @@ class UniversalSniper {
       if (isSeaDrop) {
         toAddress = this.seadropAddr;
         const seadrop = new ethers.Contract(this.seadropAddr, config.SEADROP_ABI, this.provider);
-        // If recipientAddress is given, mint directly to recipient vault address!
         const nftDestination = recipientAddress || signer.address;
         callData = seadrop.interface.encodeFunctionData('mintPublic', [
           targetContract,
           ethers.ZeroAddress,
           nftDestination,
-          1
+          qty
         ]);
       }
 

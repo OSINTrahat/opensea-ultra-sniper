@@ -11,6 +11,7 @@ module.exports = {
       name: "Ethereum Mainnet",
       symbol: "ETH",
       rpc: [
+        "https://rpc.flashbots.net?hint=hash", // Flashbots MEV & Frontrun Protection
         "https://ethereum-rpc.publicnode.com",
         "https://1rpc.io/eth",
         "https://rpc.ankr.com/eth"
@@ -23,7 +24,8 @@ module.exports = {
       rpc: [
         "https://mainnet.base.org",
         "https://base-rpc.publicnode.com",
-        "https://1rpc.io/base"
+        "https://1rpc.io/base",
+        "https://base.blockpi.network/v1/rpc/public"
       ]
     },
     robinhood: {

@@ -50,13 +50,13 @@ async function main() {
     ${c.bGreen}node cli.js inspect <contractAddress> [chain]${c.reset}
         ${c.gray}Inspect all drop phases (GTD, FCFS, Public), prices, and wallet readiness.${c.reset}
 
-    ${c.bGreen}node cli.js snipe <contractAddress> [chain] [walletId or 'all']${c.reset}
+    ${c.bGreen}node cli.js snipe <contractAddress> [chain] [walletId or 'all'] [--qty N] [--speed fast|turbo|war]${c.reset}
         ${c.gray}Pre-sign, stream live Gwei during countdown, and atomic snipe at 0ms.${c.reset}
 
   ${c.bYellow}${c.bold}QUICK EXAMPLES:${c.reset}
     ${c.white}node cli.js fund 0.005 base${c.reset}
     ${c.white}node cli.js recipient 0xYourMainVaultAddress${c.reset}
-    ${c.white}node cli.js snipe 0x1234...5678 base all${c.reset}
+    ${c.white}node cli.js snipe 0x1234...5678 base all --qty 2 --speed turbo${c.reset}
     ${c.white}node cli.js sweep base${c.reset}
 `);
     return;
@@ -286,12 +286,24 @@ async function main() {
     let customData = null;
     let customPriceWei = 0n;
 
+    // Parse optional flags: --qty <N>, --speed <fast|turbo|war>
+    let quantity = 1;
+    let speedTier = 'fast';
+    for (let i = 0; i < args.length; i++) {
+      if (args[i] === '--qty' && args[i + 1]) {
+        quantity = parseInt(args[i + 1], 10) || 1;
+      }
+      if (args[i] === '--speed' && args[i + 1]) {
+        speedTier = args[i + 1].toLowerCase();
+      }
+    }
+
     if (!isSeaDrop) {
       ui.log('INFO', `Custom contract detected: ${detection.methodsFound.join(', ') || 'mint()'}`);
       const iface = new ethers.Interface(universalDetector.COMMON_MINT_SIGNATURES);
       const chosenMethod = detection.methodsFound[0] || 'function mint() payable';
       if (chosenMethod.includes('(uint256')) {
-        customData = iface.encodeFunctionData(chosenMethod.split(' ')[1], [1]);
+        customData = iface.encodeFunctionData(chosenMethod.split(' ')[1], [quantity]);
       } else {
         customData = iface.encodeFunctionData(chosenMethod.split(' ')[1], []);
       }
@@ -300,7 +312,7 @@ async function main() {
 
     ui.log('INFO', `Pre-signing raw transactions in memory (Zero Signing Latency)...`);
     const recipientAddr = walletManager.getRecipient();
-    const armed = await sniper.armWallets(selectedWallets, contract, isSeaDrop, customData, customPriceWei, null, recipientAddr);
+    const armed = await sniper.armWallets(selectedWallets, contract, isSeaDrop, customData, customPriceWei, null, recipientAddr, quantity, speedTier);
 
     let currentGweiStr = `${liveGas.gwei} Gwei`;
     const stopGasWatcher = gasTracker.watchGas(chainKey, (g) => {
