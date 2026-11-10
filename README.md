@@ -1,14 +1,10 @@
 <p align="center">
-  <img src="banner.svg" alt="Super Mint — Atomic Multi-Chain Mint Engine by RAHAT" width="100%">
+  <img src="preview.png" alt="Super Mint terminal — main menu" width="980">
 </p>
 
 <p align="center">
   <b>High-frequency, multi-chain NFT mint sniper</b><br>
   <sub>5 wallets · 4 chains · pre-signed bursts · live drop countdown · wallet eligibility</sub>
-</p>
-
-<p align="center">
-  <img src="preview.png" alt="Super Mint terminal menu" width="860">
 </p>
 
 # SUPER MINT — Multi-Chain Ultra-Fast NFT Mint Sniper
