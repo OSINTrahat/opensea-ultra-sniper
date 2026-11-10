@@ -12,6 +12,8 @@
 const { ethers } = require('ethers');
 const config = require('./sniper_config');
 const UltraBroadcaster = require('./ultra_broadcaster');
+const ui = require('./ui');
+const { c } = ui;
 
 class UniversalSniper {
   constructor(chainKey = 'base') {
@@ -36,9 +38,9 @@ class UniversalSniper {
       lockedStartTime = Number(publicDrop.startTime);
     }
 
-    console.log(`[ARMED] Target Contract: ${targetContract}`);
-    console.log(`[ARMED] Locked Price: ${ethers.formatEther(lockedPrice)} ${this.chain.symbol}`);
-    console.log(`[ARMED] Scheduled Time: ${new Date(lockedStartTime * 1000).toLocaleString()}`);
+    ui.infoRow('Locked Target', targetContract, c.cyan);
+    ui.infoRow('Locked Price', `${ethers.formatEther(lockedPrice)} ${this.chain.symbol}`, c.bGreen);
+    ui.infoRow('Scheduled At', new Date(lockedStartTime * 1000).toLocaleString(), c.bYellow);
 
     const feeData = await this.provider.getFeeData();
     // 25% priority tip to guarantee top of block inclusion
@@ -130,17 +132,18 @@ class UniversalSniper {
         if (diffMs <= 50 && !fired) {
           fired = true;
           clearInterval(interval);
-          console.log(`\n[TRIGGER] Blasting ${armedTransactions.length} transaction(s) across multi-node RPCs...`);
+          console.log(`\n`);
+          ui.log('TRIGGER', `${c.bWhite}${c.bold}Blasting ${armedTransactions.length} transaction(s) across multi-node RPCs...${c.reset}`);
 
           const blastPromises = armedTransactions.map(async (armed) => {
             const sendStart = Date.now();
             try {
               const res = await this.broadcaster.raceBroadcast(armed.rawTx);
               const elapsed = Date.now() - sendStart;
-              console.log(`[OK] [${armed.name}] Accepted in ${elapsed}ms | Hash: ${res.hash || 'Accepted'}`);
+              ui.log('OK', `[${c.bold}${armed.name}${c.reset}] Accepted in ${c.bGreen}${elapsed}ms${c.reset} ${c.gray}â”‚${c.reset} Hash: ${c.cyan}${res.hash || 'Accepted'}${c.reset}`);
               return { success: true, wallet: armed.name, hash: res.hash || 'Accepted', latencyMs: elapsed };
             } catch (err) {
-              console.error(`[FAIL] [${armed.name}] ${err.message}`);
+              ui.log('ERROR', `[${armed.name}] ${err.message}`);
               return { success: false, wallet: armed.name, error: err.message };
             }
           });
