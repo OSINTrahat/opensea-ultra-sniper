@@ -25,7 +25,7 @@ class UniversalSniper {
   }
 
   // Pre-sign transactions in advance
-  async armWallets(wallets, targetContract, isSeaDrop = true, customData = null, customPriceWei = 0n, targetTimeSec = null) {
+  async armWallets(wallets, targetContract, isSeaDrop = true, customData = null, customPriceWei = 0n, targetTimeSec = null, recipientAddress = null) {
     const armedTransactions = [];
 
     let lockedPrice = customPriceWei;
@@ -41,6 +41,9 @@ class UniversalSniper {
     ui.infoRow('Locked Target', targetContract, c.cyan);
     ui.infoRow('Locked Price', `${ethers.formatEther(lockedPrice)} ${this.chain.symbol}`, c.bGreen);
     ui.infoRow('Scheduled At', new Date(lockedStartTime * 1000).toLocaleString(), c.bYellow);
+    if (recipientAddress) {
+      ui.infoRow('Direct Vault', recipientAddress, c.bMagenta);
+    }
 
     const feeData = await this.provider.getFeeData();
     // 25% priority tip to guarantee top of block inclusion
@@ -58,10 +61,12 @@ class UniversalSniper {
       if (isSeaDrop) {
         toAddress = this.seadropAddr;
         const seadrop = new ethers.Contract(this.seadropAddr, config.SEADROP_ABI, this.provider);
+        // If recipientAddress is given, mint directly to recipient vault address!
+        const nftDestination = recipientAddress || signer.address;
         callData = seadrop.interface.encodeFunctionData('mintPublic', [
           targetContract,
           ethers.ZeroAddress,
-          signer.address,
+          nftDestination,
           1
         ]);
       }

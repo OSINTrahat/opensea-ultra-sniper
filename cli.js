@@ -32,6 +32,15 @@ async function main() {
     ${c.bGreen}node cli.js set-wallet <1-5> <privateKey>${c.reset}
         ${c.gray}Configure or update private key for wallet 1 through 5.${c.reset}
 
+    ${c.bGreen}node cli.js recipient [address]${c.reset}
+        ${c.gray}View or set main Vault/Receiver address for all minted NFTs & swept funds.${c.reset}
+
+    ${c.bGreen}node cli.js fund <amountEth> [chain]${c.reset}
+        ${c.gray}Auto-fund Wallets 2-5 from Wallet 1 (Master) with exact ETH in 1 command.${c.reset}
+
+    ${c.bGreen}node cli.js sweep [chain]${c.reset}
+        ${c.gray}Sweep remaining ETH from sub-wallets back to Master / Recipient Vault.${c.reset}
+
     ${c.bGreen}node cli.js wallets [chain]${c.reset}
         ${c.gray}Query real-time native ETH balances across all 5 wallets.${c.reset}
 
@@ -45,9 +54,10 @@ async function main() {
         ${c.gray}Pre-sign, stream live Gwei during countdown, and atomic snipe at 0ms.${c.reset}
 
   ${c.bYellow}${c.bold}QUICK EXAMPLES:${c.reset}
-    ${c.white}node cli.js gas base${c.reset}
-    ${c.white}node cli.js inspect 0x1234...5678 base${c.reset}
+    ${c.white}node cli.js fund 0.005 base${c.reset}
+    ${c.white}node cli.js recipient 0xYourMainVaultAddress${c.reset}
     ${c.white}node cli.js snipe 0x1234...5678 base all${c.reset}
+    ${c.white}node cli.js sweep base${c.reset}
 `);
     return;
   }
@@ -65,6 +75,57 @@ async function main() {
       ui.log('OK', `${c.bGreen}${res.slice(5)}${c.reset}`);
     } else {
       ui.log('ERROR', `${c.bRed}${res.slice(8)}${c.reset}`);
+    }
+    return;
+  }
+
+  // 2. Recipient Vault
+  if (command === 'recipient') {
+    const addr = args[1];
+    if (addr) {
+      const res = walletManager.setRecipient(addr);
+      if (res.startsWith('[OK]')) {
+        ui.log('OK', `${c.bGreen}${res.slice(5)}${c.reset}`);
+      } else {
+        ui.log('ERROR', `${c.bRed}${res.slice(8)}${c.reset}`);
+      }
+    } else {
+      const current = walletManager.getRecipient();
+      ui.section('MAIN VAULT / RECIPIENT');
+      ui.infoRow('Recipient Address', current || 'Not configured (Defaults to Wallet 1)', c.bGreen);
+    }
+    return;
+  }
+
+  // 3. Auto-Fund Wallets 2-5 from Wallet 1
+  if (command === 'fund') {
+    const amt = args[1];
+    const chainKey = args[2] || 'base';
+    if (!amt) {
+      ui.log('WARN', `Usage: ${c.white}node cli.js fund <amountEth> [chain]${c.reset}`);
+      return;
+    }
+    ui.section(`AUTO-FUND SUB-WALLETS â€¢ ${chainKey.toUpperCase()}`);
+    ui.log('INFO', `Dispatching ${c.bGreen}${amt} ETH${c.reset} from Wallet 1 (Master) to Wallets 2-5...`);
+    try {
+      const res = await walletManager.fundSubWallets(amt, chainKey);
+      console.table(res);
+    } catch (err) {
+      ui.log('ERROR', err.message);
+    }
+    return;
+  }
+
+  // 4. Sweep / Withdraw
+  if (command === 'sweep' || command === 'withdraw') {
+    const chainKey = args[1] || 'base';
+    ui.section(`SWEEPER / WITHDRAW â€¢ ${chainKey.toUpperCase()}`);
+    ui.log('INFO', `Sweeping leftover balances from sub-wallets to Recipient Vault...`);
+    try {
+      const res = await walletManager.sweepFunds(chainKey);
+      console.table(res);
+    } catch (err) {
+      ui.log('ERROR', err.message);
     }
     return;
   }
@@ -238,7 +299,8 @@ async function main() {
     }
 
     ui.log('INFO', `Pre-signing raw transactions in memory (Zero Signing Latency)...`);
-    const armed = await sniper.armWallets(selectedWallets, contract, isSeaDrop, customData, customPriceWei);
+    const recipientAddr = walletManager.getRecipient();
+    const armed = await sniper.armWallets(selectedWallets, contract, isSeaDrop, customData, customPriceWei, null, recipientAddr);
 
     let currentGweiStr = `${liveGas.gwei} Gwei`;
     const stopGasWatcher = gasTracker.watchGas(chainKey, (g) => {

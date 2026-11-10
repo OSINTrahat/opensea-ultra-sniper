@@ -149,7 +149,47 @@ node cli.js set-wallet 1 0x4f3edf983ac636a65a842ce7c78d5aa706d41cdc168f8364ff0d5
 
 ---
 
-### 2. Multi-Chain Balance Query (`wallets`)
+### 2. Recipient Vault & Auto-Forwarding (`recipient`)
+Configures a primary destination address. All NFTs minted across your sub-wallets will be minted or delivered directly into this vault address, eliminating the need to hold valuable NFTs across temporary sub-wallets.
+
+```bash
+# View current recipient vault
+node cli.js recipient
+
+# Set new recipient vault address
+node cli.js recipient 0xYourMainColdVaultAddress
+```
+
+---
+
+### 3. One-Click Sub-Wallet Gas Dispatcher (`fund`)
+Automatically funds Wallets 2 through 5 from Wallet 1 (Master Wallet) in a single command. You only ever need to send ETH to Wallet 1; the bot will disburse exact mint + gas funds to the other wallets automatically.
+
+```bash
+node cli.js fund <amountInEth> [chain]
+```
+**Example:**
+```bash
+node cli.js fund 0.005 base
+```
+
+---
+
+### 4. Post-Mint Sweeper / Withdraw (`sweep`)
+Sweeps all leftover native ETH from sub-wallets (Wallets 2-5) back to your Master Wallet or Recipient Vault after the mint has concluded, deducting only the minimal transfer gas.
+
+```bash
+node cli.js sweep [chain]
+# or: node cli.js withdraw [chain]
+```
+**Example:**
+```bash
+node cli.js sweep base
+```
+
+---
+
+### 5. Multi-Chain Balance Query (`wallets`)
 Queries real-time native ETH balances across all 5 wallets on the specified chain.
 
 ```bash
