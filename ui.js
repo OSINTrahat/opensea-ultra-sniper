@@ -1,6 +1,6 @@
 /**
- * Terminal UI Formatter & Color Suite (Bloomberg / DeFi Institutional Edition)
- * Dense, data-rich ANSI terminal layouts with crisp borders, status badges, and latency tables.
+ * Terminal UI Formatter & Color Suite (Clean Modern Minimalist)
+ * 100% ASCII-compatible, no unicode glitches, super clean spacing.
  */
 
 const c = {
@@ -10,7 +10,7 @@ const c = {
   italic: "\x1b[3m",
   underline: "\x1b[4m",
   
-  // Foreground colors
+  // Colors
   black: "\x1b[30m",
   red: "\x1b[31m",
   green: "\x1b[32m",
@@ -21,83 +21,66 @@ const c = {
   white: "\x1b[37m",
   gray: "\x1b[90m",
   
-  // Bright foreground
+  // Bright colors
   bRed: "\x1b[91m",
   bGreen: "\x1b[92m",
   bYellow: "\x1b[93m",
   bBlue: "\x1b[94m",
   bMagenta: "\x1b[95m",
   bCyan: "\x1b[96m",
-  bWhite: "\x1b[97m",
-  
-  // Background colors
-  bgBlack: "\x1b[40m",
-  bgRed: "\x1b[41m",
-  bgGreen: "\x1b[42m",
-  bgYellow: "\x1b[43m",
-  bgBlue: "\x1b[44m",
-  bgMagenta: "\x1b[45m",
-  bgCyan: "\x1b[46m",
-  bgWhite: "\x1b[47m",
-  bgDarkGray: "\x1b[100m"
+  bWhite: "\x1b[97m"
 };
 
 const ui = {
   c,
 
   banner() {
-    console.log(`
-${c.bCyan}================================================================================${c.reset}
-  ${c.bWhite}${c.bold}OPENSEA SEADROP & MULTI-CHAIN ULTRA SNIPER${c.reset}  ${c.bgCyan}${c.black}${c.bold} v1.0.0 ${c.reset}  ${c.bGreen}[INSTITUTIONAL]${c.reset}
-  ${c.gray}ARCHITECTURE : Zero-Latency In-Memory Pre-Signing | Multi-Node Mempool Racing${c.reset}
-  ${c.gray}MEV RELAYS   : Flashbots Protect Private Bundle Routing | Cold Vault Delivery${c.reset}
-${c.bCyan}================================================================================${c.reset}`);
+    console.log(`\n  ${c.bCyan}${c.bold}OPENSEA ULTRA SNIPER${c.reset} ${c.gray}v1.0.0${c.reset}`);
+    console.log(`  ${c.gray}------------------------------------------------------${c.reset}`);
   },
 
-  hudBar(chain = 'BASE', mev = 'ACTIVE', nodes = '3 RACING', speed = 'TURBO') {
-    const bar = `SYS: ONLINE | NET: ${chain.toUpperCase()} | MEV: ${mev} | RPC: ${nodes} | TIER: ${speed.toUpperCase()}`;
-    console.log(`\n${c.bCyan}================================================================================${c.reset}`);
-    console.log(`  ${c.bWhite}${c.bold}${bar}${c.reset}`);
-    console.log(`${c.bCyan}================================================================================${c.reset}`);
+  hudBar(chain = 'BASE', mev = 'ACTIVE', nodes = '3 Nodes', speed = 'TURBO') {
+    console.log(`\n  ${c.bWhite}${c.bold}${chain.toUpperCase()}${c.reset}  ${c.gray}|${c.reset}  MEV: ${c.bGreen}${mev}${c.reset}  ${c.gray}|${c.reset}  RPC: ${c.cyan}${nodes}${c.reset}  ${c.gray}|${c.reset}  Speed: ${c.bYellow}${speed.toUpperCase()}${c.reset}`);
+    console.log(`  ${c.gray}------------------------------------------------------${c.reset}`);
   },
 
   section(title) {
-    const line = "=".repeat(Math.max(4, 76 - title.length));
-    console.log(`\n${c.bCyan}==[ ${c.bWhite}${c.bold}${title}${c.bCyan} ]${line}${c.reset}\n`);
+    console.log(`\n  ${c.bCyan}${c.bold}${title}${c.reset}`);
+    console.log(`  ${c.gray}------------------------------------------------------${c.reset}`);
   },
 
   divider() {
-    console.log(`${c.gray}${"-".repeat(80)}${c.reset}`);
+    console.log(`  ${c.gray}------------------------------------------------------${c.reset}`);
   },
 
   badge(text) {
     const t = String(text).toUpperCase();
     if (t === 'ACTIVE' || t === 'READY' || t === 'YES' || t === 'SUCCESS' || t === 'TRUE') {
-      return `${c.bGreen}${c.bold}[ OK:READY ]${c.reset}`;
+      return `${c.bGreen}READY${c.reset}`;
     }
     if (t.includes('UPCOMING')) {
-      return `${c.bCyan}[ UPCOMING ]${c.reset}`;
+      return `${c.bCyan}UPCOMING${c.reset}`;
     }
     if (t === 'PAUSED' || t === 'WARN' || t === 'WAITING') {
-      return `${c.bYellow}[ WAITING ]${c.reset}`;
+      return `${c.bYellow}WAITING${c.reset}`;
     }
     if (t === 'ENDED' || t === 'NO' || t === 'ERROR' || t === 'FALSE' || t.includes('FAIL') || t.includes('INSUFFICIENT')) {
-      return `${c.bRed}${c.bold}[ REJECTED ]${c.reset}`;
+      return `${c.bRed}FAILED${c.reset}`;
     }
     if (t === 'NO_KEY' || t === 'INACTIVE') {
-      return `${c.gray}[ NOT_SET ]${c.reset}`;
+      return `${c.gray}NOT SET${c.reset}`;
     }
-    return `${c.cyan}[ ${text} ]${c.reset}`;
+    return `${c.white}${text}${c.reset}`;
   },
 
   infoRow(label, value, valColor = c.bWhite) {
-    const padLabel = label.padEnd(20, ' ');
-    console.log(`  ${c.cyan}${padLabel}${c.reset} :  ${valColor}${value}${c.reset}`);
+    const padLabel = label.padEnd(16, ' ');
+    console.log(`  ${c.gray}${padLabel}${c.reset}  ${valColor}${value}${c.reset}`);
   },
 
   renderTable(headers, rows) {
     if (!rows || rows.length === 0) {
-      console.log(`  ${c.gray}(No records found)${c.reset}`);
+      console.log(`  ${c.gray}(No data)${c.reset}`);
       return;
     }
 
@@ -108,47 +91,42 @@ ${c.bCyan}======================================================================
         const str = r[i] !== undefined && r[i] !== null ? String(r[i]).replace(/\x1b\[[0-9;]*m/g, '') : '';
         if (str.length > max) max = str.length;
       });
-      return max + 2; // padding
+      return max + 4; // neat column spacing
     });
 
-    const border = '+' + colWidths.map(w => '-'.repeat(w)).join('+') + '+';
+    const totalWidth = Math.min(76, colWidths.reduce((a, b) => a + b, 0));
 
-    console.log(`  ${c.bCyan}${border}${c.reset}`);
-    
-    // Header row
-    const headerLine = '|' + headers.map((h, i) => {
-      return ` ${c.bold}${c.bYellow}${h.padEnd(colWidths[i] - 1, ' ')}${c.reset}`;
-    }).join(`${c.bCyan}|${c.reset}`) + `${c.bCyan}|${c.reset}`;
-    
+    // Print Header
+    const headerLine = headers.map((h, i) => {
+      return `${c.bWhite}${c.bold}${h.padEnd(colWidths[i], ' ')}${c.reset}`;
+    }).join('');
     console.log(`  ${headerLine}`);
-    console.log(`  ${c.bCyan}${border}${c.reset}`);
+    console.log(`  ${c.gray}${"-".repeat(totalWidth)}${c.reset}`);
 
-    // Data rows
+    // Print Rows
     rows.forEach(row => {
-      const line = '|' + row.map((cell, i) => {
+      const line = row.map((cell, i) => {
         const rawStr = cell !== undefined && cell !== null ? String(cell) : '';
         const cleanLen = rawStr.replace(/\x1b\[[0-9;]*m/g, '').length;
-        const pad = Math.max(0, colWidths[i] - cleanLen - 1);
-        return ` ${rawStr}${' '.repeat(pad)}`;
-      }).join(`${c.gray}|${c.reset}`) + `${c.gray}|${c.reset}`;
+        const pad = Math.max(0, colWidths[i] - cleanLen);
+        return `${rawStr}${' '.repeat(pad)}`;
+      }).join('');
       console.log(`  ${line}`);
     });
-
-    console.log(`  ${c.bCyan}${border}${c.reset}\n`);
+    console.log(`  ${c.gray}${"-".repeat(totalWidth)}${c.reset}\n`);
   },
 
   log(level, msg) {
     const lvl = level.toUpperCase();
-    const time = new Date().toTimeString().split(' ')[0];
-    let prefix = `${c.gray}[${time}]${c.reset} ${c.cyan}[INFO]${c.reset}`;
-    if (lvl === 'OK' || lvl === 'SUCCESS') prefix = `${c.gray}[${time}]${c.reset} ${c.bGreen}${c.bold}[CONFIRMED]${c.reset}`;
-    if (lvl === 'WARN') prefix = `${c.gray}[${time}]${c.reset} ${c.bYellow}[WARN]${c.reset}`;
-    if (lvl === 'ERROR' || lvl === 'FAIL') prefix = `${c.gray}[${time}]${c.reset} ${c.bRed}${c.bold}[FAILED]${c.reset}`;
-    if (lvl === 'TRIGGER') prefix = `${c.gray}[${time}]${c.reset} ${c.bgMagenta}${c.bold}${c.bWhite} [BURST_FIRE] ${c.reset}`;
-    if (lvl === 'ARMED') prefix = `${c.gray}[${time}]${c.reset} ${c.bGreen}${c.bold}[PRE-SIGNED]${c.reset}`;
-    if (lvl === 'GAS') prefix = `${c.gray}[${time}]${c.reset} ${c.bMagenta}[GAS_RADAR]${c.reset}`;
+    let prefix = `${c.cyan}info${c.reset} `;
+    if (lvl === 'OK' || lvl === 'SUCCESS') prefix = `${c.bGreen}done${c.reset} `;
+    if (lvl === 'WARN') prefix = `${c.bYellow}warn${c.reset} `;
+    if (lvl === 'ERROR' || lvl === 'FAIL') prefix = `${c.bRed}fail${c.reset} `;
+    if (lvl === 'TRIGGER') prefix = `${c.bMagenta}fire${c.reset} `;
+    if (lvl === 'ARMED') prefix = `${c.bGreen}ready${c.reset}`;
+    if (lvl === 'GAS') prefix = `${c.cyan}gas${c.reset} `;
 
-    console.log(`${prefix} ${msg}`);
+    console.log(`  ${prefix} ${msg}`);
   }
 };
 
