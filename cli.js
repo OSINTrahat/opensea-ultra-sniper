@@ -27,34 +27,122 @@ function askQuestion(query) {
   }));
 }
 
+function selectOptionArrow(title, options) {
+  return new Promise((resolve) => {
+    let selectedIndex = 0;
+    const stdin = process.stdin;
+
+    // Enable raw mode to read single keypresses
+    if (stdin.isTTY) stdin.setRawMode(true);
+    stdin.resume();
+    stdin.setEncoding('utf8');
+
+    function render() {
+      // Clear previous lines
+      console.log(`\n  ${c.bYellow}${c.bold}${title}${c.reset}`);
+      console.log(`  ${c.gray}(Use ↑ / ↓ arrow keys or number keys, press Enter to select)${c.reset}\n`);
+
+      options.forEach((opt, idx) => {
+        if (idx === selectedIndex) {
+          console.log(`  ${c.bGreen}${c.bold}❯ ${opt.label}${c.reset}  ${c.cyan}${opt.hint || ''}${c.reset}`);
+        } else {
+          console.log(`    ${c.gray}${opt.label}${c.reset}  ${c.gray}${opt.hint || ''}${c.reset}`);
+        }
+      });
+    }
+
+    render();
+
+    function onData(chunk) {
+      const key = chunk.toString();
+
+      // Ctrl+C
+      if (key === '\u0003') {
+        cleanup();
+        process.exit(0);
+      }
+
+      // Enter
+      if (key === '\r' || key === '\n') {
+        cleanup();
+        console.log('');
+        resolve(options[selectedIndex].value);
+        return;
+      }
+
+      // Up arrow
+      if (key === '\u001b[A') {
+        selectedIndex = (selectedIndex - 1 + options.length) % options.length;
+        reRender();
+        return;
+      }
+
+      // Down arrow
+      if (key === '\u001b[B') {
+        selectedIndex = (selectedIndex + 1) % options.length;
+        reRender();
+        return;
+      }
+
+      // Direct number key (1-9)
+      const num = parseInt(key, 10);
+      if (!isNaN(num) && num >= 1 && num <= options.length) {
+        cleanup();
+        console.log('');
+        resolve(options[num - 1].value);
+        return;
+      }
+      if (key === '0') {
+        const zeroOpt = options.find(o => o.value === '0' || o.value === 0);
+        if (zeroOpt) {
+          cleanup();
+          console.log('');
+          resolve(zeroOpt.value);
+          return;
+        }
+      }
+    }
+
+    function reRender() {
+      // Move cursor up by (options.length + 3) lines and clear
+      readline.moveCursor(process.stdout, 0, -(options.length + 4));
+      readline.clearScreenDown(process.stdout);
+      render();
+    }
+
+    function cleanup() {
+      stdin.removeListener('data', onData);
+      if (stdin.isTTY) stdin.setRawMode(false);
+      stdin.pause();
+    }
+
+    stdin.on('data', onData);
+  });
+}
+
 async function selectChainInteractive(defaultChain = 'base') {
-  console.log(`\n  ${c.bYellow}${c.bold}Select Blockchain Network:${c.reset}`);
-  console.log(`    ${c.bWhite}1)${c.reset} ${c.bCyan}Base${c.reset} (Chain ID: 8453)  ${c.gray}[Recommended / Ultra-Cheap]${c.reset}`);
-  console.log(`    ${c.bWhite}2)${c.reset} ${c.bCyan}Ethereum${c.reset} (Chain ID: 1)  ${c.gray}[Flashbots Protect MEV]${c.reset}`);
-  console.log(`    ${c.bWhite}3)${c.reset} ${c.bCyan}Robinhood${c.reset} (Chain ID: 48)`);
-  console.log(`    ${c.bWhite}4)${c.reset} ${c.bCyan}Ink Chain${c.reset} (Chain ID: 57073)`);
-  
-  const choice = await askQuestion(`\n  Choose [1-4] (default: 1): `);
-  if (choice === '2') return 'ethereum';
-  if (choice === '3') return 'robinhood';
-  if (choice === '4') return 'ink';
-  return 'base';
+  return selectOptionArrow('Select Blockchain Network:', [
+    { label: '1) Base', hint: '(Chain ID: 8453) [Recommended / Ultra-Cheap]', value: 'base' },
+    { label: '2) Ethereum', hint: '(Chain ID: 1) [Flashbots Protect MEV]', value: 'ethereum' },
+    { label: '3) Robinhood', hint: '(Chain ID: 48)', value: 'robinhood' },
+    { label: '4) Ink Chain', hint: '(Chain ID: 57073)', value: 'ink' }
+  ]);
 }
 
 async function interactiveMenu() {
   ui.banner();
-  console.log(`  ${c.bYellow}${c.bold}What would you like to do?${c.reset}`);
-  console.log(`    ${c.bGreen}1)${c.reset} ${c.bWhite}Snipe / Mint Drop${c.reset}       ${c.gray}(Pre-sign & atomic blast at 0ms)${c.reset}`);
-  console.log(`    ${c.bGreen}2)${c.reset} ${c.bWhite}Inspect Drop / Contract${c.reset} ${c.gray}(Phases, start time, price, limits)${c.reset}`);
-  console.log(`    ${c.bGreen}3)${c.reset} ${c.bWhite}Live Gas Stream${c.reset}         ${c.gray}(Monitor Base Fee & Priority Gwei)${c.reset}`);
-  console.log(`    ${c.bGreen}4)${c.reset} ${c.bWhite}Check Wallet Balances${c.reset}   ${c.gray}(View all 5 wallets on any chain)${c.reset}`);
-  console.log(`    ${c.bGreen}5)${c.reset} ${c.bWhite}Auto-Fund Sub-Wallets${c.reset}   ${c.gray}(Send gas from Wallet 1 to Wallets 2-5)${c.reset}`);
-  console.log(`    ${c.bGreen}6)${c.reset} ${c.bWhite}Sweep Balances${c.reset}          ${c.gray}(Withdraw leftover ETH to Vault)${c.reset}`);
-  console.log(`    ${c.bGreen}7)${c.reset} ${c.bWhite}Set / Update Wallet Key${c.reset} ${c.gray}(Save private key 1 to 5)${c.reset}`);
-  console.log(`    ${c.bGreen}8)${c.reset} ${c.bWhite}Set Recipient Cold Vault${c.reset}${c.gray}(Direct delivery address)${c.reset}`);
-  console.log(`    ${c.bRed}0)${c.reset} ${c.gray}Exit${c.reset}`);
 
-  const choice = await askQuestion(`\n  Enter option [0-8]: `);
+  const choice = await selectOptionArrow('What would you like to do?', [
+    { label: '1) Snipe / Mint Drop', hint: '(Pre-sign & atomic blast at 0ms)', value: '1' },
+    { label: '2) Inspect Drop / Contract', hint: '(Phases, start time, price, limits)', value: '2' },
+    { label: '3) Live Gas Stream', hint: '(Monitor Base Fee & Priority Gwei)', value: '3' },
+    { label: '4) Check Wallet Balances', hint: '(View all 5 wallets on any chain)', value: '4' },
+    { label: '5) Auto-Fund Sub-Wallets', hint: '(Send gas from Wallet 1 to Wallets 2-5)', value: '5' },
+    { label: '6) Sweep Balances', hint: '(Withdraw leftover ETH to Vault)', value: '6' },
+    { label: '7) Set / Update Wallet Key', hint: '(Save private key 1 to 5)', value: '7' },
+    { label: '8) Set Recipient Cold Vault', hint: '(Direct delivery address)', value: '8' },
+    { label: '0) Exit', hint: '', value: '0' }
+  ]);
 
   if (choice === '1') {
     const contract = await askQuestion(`\n  Enter NFT Contract Address: `);
@@ -66,12 +154,11 @@ async function interactiveMenu() {
     const qtyStr = await askQuestion(`  Quantity per wallet (default: 1): `);
     const qty = parseInt(qtyStr, 10) || 1;
     
-    console.log(`\n  Priority Gas Boost Tier:`);
-    console.log(`    1) Fast (+0%)  2) Turbo (+35%)  3) War (+100%)`);
-    const speedPick = await askQuestion(`  Select speed [1-3] (default: 2 - Turbo): `);
-    let speed = 'turbo';
-    if (speedPick === '1') speed = 'fast';
-    if (speedPick === '3') speed = 'war';
+    const speed = await selectOptionArrow('Priority Gas Boost Tier:', [
+      { label: '1) Fast', hint: '(+0% Tip)', value: 'fast' },
+      { label: '2) Turbo', hint: '(+35% Tip - Recommended)', value: 'turbo' },
+      { label: '3) War', hint: '(+100% Tip - Frontrun MEV)', value: 'war' }
+    ]);
 
     return executeSnipe(contract, chain, 'all', qty, speed);
   }
