@@ -67,6 +67,7 @@ function selectOptionArrow(title, options, opts = {}) {
   return new Promise((resolve) => {
     let selectedIndex = Math.min(Math.max(0, opts.startIndex || 0), options.length - 1);
     let frame = [];
+    let introDone = false;
 
     stdin.setRawMode(true);
     stdin.resume();
@@ -74,7 +75,13 @@ function selectOptionArrow(title, options, opts = {}) {
 
     function paint() {
       frame = ui.screen(title, options, selectedIndex, opts);
-      process.stdout.write(frame.join('\n') + '\n');
+      let skip = 0;
+      if (!introDone) {
+        introDone = true;
+        if (opts.banner) skip = ui.intro(process.stdout.columns);
+      }
+      const body = skip ? frame.slice(skip) : frame;
+      process.stdout.write(body.join('\n') + '\n');
     }
 
     function repaint() {
@@ -212,7 +219,9 @@ async function interactiveMenu() {
     const contract = target.address;
     const chain = target.chain || await selectChainInteractive('base');
 
+    const sp = ui.spinner(`Reading drop data on ${chain.toUpperCase()}…`);
     const info = await loadDropInfo(contract, chain);
+    sp.stop();
     if (!info.ok) {
       ui.log('ERROR', info.error);
       return;
@@ -525,7 +534,9 @@ async function chooseTargets(allWallets) {
 
 async function executeInspect(contract, chainKey) {
   ui.log('INFO', `Analyzing contract: ${c.cyan}${contract}${c.reset}`);
+  const sp = ui.spinner(`Reading drop data on ${chainKey.toUpperCase()}…`);
   const info = await loadDropInfo(contract, chainKey);
+  sp.stop();
   if (!info.ok) {
     ui.log('ERROR', info.error);
     return;
@@ -745,7 +756,9 @@ async function main() {
       if (args[i] === '--speed' && args[i + 1]) speedTier = args[i + 1].toLowerCase();
     }
 
+    const sp = ui.spinner(`Reading drop data on ${chainKey.toUpperCase()}…`);
     const info = await loadDropInfo(contract, chainKey);
+    sp.stop();
     if (!info.ok) {
       ui.log('ERROR', info.error);
       return;

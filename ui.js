@@ -321,4 +321,80 @@ const ui = {
   }
 };
 
+/* --------------------------------------------------------------- animation */
+
+function sleep(ms) {
+  try {
+    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+  } catch { /* ignore */ }
+}
+
+const SPINNER = ['|', '/', '-', '\\'];
+
+/**
+ * Light sweeps across the wordmark once. Prints the leading blank line plus the
+ * logo rows, and returns how many lines it drew (0 when animation is skipped).
+ */
+function intro(width) {
+  if (!process.stdout.isTTY) return 0;
+  const w = width || termWidth();
+  const rows = WORDMARK_BLOCK;
+  const okSize = WORDMARK_W <= w - 2 && (!process.stdout.rows || process.stdout.rows >= 24);
+  if (!okSize) return 0;
+
+  const pad = ' '.repeat(Math.max(0, Math.floor((w - WORDMARK_W) / 2)));
+  const draw = (row, colorFor) => {
+    let out = pad;
+    for (let i = 0; i < row.length; i++) out += colorFor(i) + row[i] + c.reset;
+    return out;
+  };
+
+  process.stdout.write('\n');
+  rows.forEach(row => process.stdout.write(pad + c.mintDark + row + c.reset + '\n'));
+
+  const frames = 8;
+  for (let f = 0; f < frames; f++) {
+    process.stdout.write(`\x1b[${rows.length}A`);
+    const head = Math.round(((f + 1) / frames) * (WORDMARK_W + 6)) - 3;
+    rows.forEach((row, r) => {
+      const line = draw(row, i => {
+        const d = Math.abs(i - head);
+        if (d <= 1) return c.white + c.bold;
+        if (d <= 3) return c.mintBright;
+        return WORDMARK_COLORS[r];
+      });
+      process.stdout.write(line + '\n');
+    });
+    sleep(45);
+  }
+
+  process.stdout.write(`\x1b[${rows.length}A`);
+  rows.forEach((row, r) => process.stdout.write(pad + WORDMARK_COLORS[r] + c.bold + row + c.reset + '\n'));
+
+  return rows.length + 1;
+}
+
+/** Tiny spinner for network waits. Call stop() when the work finishes. */
+function spinner(label) {
+  const enabled = !!(process.stdout.isTTY && process.stderr.isTTY !== false);
+  let i = 0;
+  let timer = null;
+  if (enabled) {
+    process.stderr.write(`  ${c.mintMid}${SPINNER[0]}${c.reset} ${c.gray}${label}${c.reset}`);
+    timer = setInterval(() => {
+      i = (i + 1) % SPINNER.length;
+      process.stderr.write(`\r  ${c.mintMid}${SPINNER[i]}${c.reset} ${c.gray}${label}${c.reset}`);
+    }, 90);
+  }
+  return {
+    stop() {
+      if (timer) clearInterval(timer);
+      if (enabled) process.stderr.write('\r\x1b[2K');
+    }
+  };
+}
+
+ui.intro = intro;
+ui.spinner = spinner;
+
 module.exports = ui;
