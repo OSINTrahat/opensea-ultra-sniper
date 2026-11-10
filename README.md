@@ -155,14 +155,13 @@ The branded **SUPER MINT** opening page appears, and every action is one keypres
   ╭──────────────────────────────────────────────────────────────────────────╮
   │  ◆  MAIN MENU                                                            │
   ├──────────────────────────────────────────────────────────────────────────┤
-  │    ❯ 1   Snipe / Mint Drop       (Pre-sign & atomic blast at 0ms)        │
-  │      2   Inspect Drop / Contract (Phases, start time, price, limits)     │
-  │      3   Live Gas Stream         (Monitor Base Fee & Priority Gwei)      │
-  │      4   Check Wallet Balances   (View all 5 wallets on any chain)       │
-  │      5   Auto-Fund Sub-Wallets   (Send gas from Wallet 1 to Wallets 2-5) │
-  │      6   Sweep Balances          (Withdraw leftover ETH to Vault)        │
-  │      7   Set / Update Wallet Key (Save private key 1 to 5)               │
-  │      8   Set Recipient Vault     (Direct delivery address)              │
+  │    ❯ 1   Snipe / Mint Drop       (Paste address or OpenSea link)        │
+  │      2   Live Gas Stream         (Monitor Base Fee & Priority Gwei)      │
+  │      3   Check Wallet Balances   (View all 5 wallets on any chain)       │
+  │      4   Auto-Fund Sub-Wallets   (Send gas from Wallet 1 to Wallets 2-5) │
+  │      5   Sweep Balances          (Withdraw leftover ETH to Vault)        │
+  │      6   Set / Update Wallet Key (Save private key 1 to 5)               │
+  │      7   Set Recipient Vault     (Direct delivery address)               │
   │      0   Exit                    (Close Super Mint)                      │
   ├──────────────────────────────────────────────────────────────────────────┤
   │  ↑↓ move    ↵ select    number keys    q quit                           │
@@ -172,7 +171,7 @@ The branded **SUPER MINT** opening page appears, and every action is one keypres
 
 **Three ways to pick, whichever feels natural:**
 - **Arrow keys:** `↑` / `↓` to move the green pointer, `Enter` to confirm.
-- **Number keys:** press `1`–`8` (or `0` to exit) and it selects instantly.
+- **Number keys:** press `1`–`7` (or `0` to exit) and it selects instantly.
 - **Vim keys:** `j` / `k` move, `q` quits.
 
 Every sub-screen (network picker, speed tier, wallet slot) uses the same arrow-key picker, so there is nothing to type except the contract and quantities.
@@ -354,44 +353,45 @@ sniper gas base
 ---
 
 ### 4. Contract & Drop Inspection (`inspect`)
-Analyzes target contracts before minting.
-- **For OpenSea SeaDrop:** Automatically parses and tabulates **every scheduled drop phase** (GTD Allowlist, FCFS, Public Stage), mint prices, start/end dates, wallet mint stats, and evaluates wallet fee readiness.
-- **For Custom Web3 Contracts:** Analyzes bytecode to detect standard mint function signatures (`mint()`, `claim()`, `publicMint(uint256)`), checks paused state, and evaluates pricing.
+Read-only: never signs, never spends. Same info screen the snipe flow shows first — phases with countdown, per-wallet eligibility, prices, gas — but it returns straight to the shell. Use it when you only want to check a drop, or in scripts.
+- **For OpenSea SeaDrop:** parses **every scheduled drop phase** (GTD Allowlist, FCFS, Public), prices, start/end times, time left, wallet mint stats, and wallet eligibility.
+- **For Custom Web3 Contracts:** analyzes bytecode to detect standard mint signatures (`mint()`, `claim()`, `publicMint(uint256)`), checks paused state, and reports pricing.
 
 ```bash
-sniper inspect <contractAddress> [chain]
+sniper inspect <contractAddress | link> [chain]
 ```
 
 **Example:**
 ```bash
+sniper inspect https://opensea.io/collection/boredapeyachtclub
 sniper inspect 0x1234567890abcdef1234567890abcdef12345678 base
 ```
 
 **Output:**
 ```
-======================== DROP METADATA ========================
-Network:     Base Mainnet (Chain ID: 8453)
-Contract:    0x1234567890abcdef1234567890abcdef12345678
-Protocol:    OpenSea SeaDrop (0x00005EA00Ac477B1030CE78506496665451e930B)
-Network Gas: 0.011 Gwei (~0.000002 ETH per mint)
+  DROP INFO | ETHEREUM
+  ------------------------------------------------------
+  Contract        0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D
+  Network         ETHEREUM (Chain ID: 1)
+  Protocol        Generic ERC-721 mint
+  Live Gas        0.066 Gwei (~0.000012 ETH)
 
-=================== DROP SCHEDULE (ALL PHASES) ===================
-┌─────────┬────────────────────────┬──────────┬──────────────────────┬──────────────────────┬──────────────┬────────────────────┐
-│ Phase   │ Name                   │ Price    │ StartTime            │ EndTime              │ MaxPerWallet │ Status             │
-├─────────┼────────────────────────┼──────────┼──────────────────────┼──────────────────────┼──────────────┼────────────────────┤
-│ #1      │ Allowlist / GTD / FCFS │ 0.000 ETH│ 11/11/2026, 12:00 AM │ 11/11/2026, 12:30 AM │ 1            │ UPCOMING (120s)    │
-│ #2      │ Public Mint            │ 0.005 ETH│ 11/11/2026, 12:30 AM │ 11/12/2026, 12:00 AM │ 3            │ UPCOMING (1920s)   │
-└─────────┴────────────────────────┴──────────┴──────────────────────┴──────────────────────┴──────────────┴────────────────────┘
+  MINT SCHEDULE
+  ------------------------------------------------------
+  Type            Generic Web3 / Custom Mint
+  Functions       Fallback mint() supported
+  Price           0 ETH
+  Status          OPEN
 
-================== WALLET READINESS & BALANCES ==================
-┌──────────┬────────────────────────────────────────────┬────────────────────────┬─────────────┬────────────┬────────┬───────────┐
-│ Wallet   │ Address                                    │ TargetPhase            │ Balance     │ MintPrice  │ HasFee │ Readiness │
-├──────────┼────────────────────────────────────────────┼────────────────────────┼─────────────┼────────────┼────────┼───────────┤
-│ 1: W1    │ 0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1 │ Allowlist / GTD / FCFS │ 0.04500 ETH │ 0.000 ETH  │ YES    │ READY     │
-│ 2: W2    │ 0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0 │ Allowlist / GTD / FCFS │ 0.02100 ETH │ 0.000 ETH  │ YES    │ READY     │
-│ 3: W3    │ 0x22d491Bde2303f2f13385b1E34952F2285b24471 │ Allowlist / GTD / FCFS │ 0.01500 ETH │ 0.000 ETH  │ YES    │ READY     │
-└──────────┴────────────────────────────────────────────┴────────────────────────┴─────────────┴────────────┴────────┴───────────┘
+  WALLET ELIGIBILITY
+  ------------------------------------------------------
+  #    Wallet               Address      Phase      Needed         Balance       Verdict
+  -------------------------------------------------------------------------------------
+  1    Wallet 1 (Master)    0x71C7…976F  Public     0.00001 ETH    0.01230 ETH   ✓ ELIGIBLE
+  2    Wallet 2             0x2546…Ec30  Public     0.00001 ETH    0.00000 ETH   LOW FUNDS
+  3    Wallet 3             —            Public     0.00001 ETH    —             NO KEY
 ```
+*(Illustrative sample. SeaDrop drops additionally show a `MINT PHASES & COUNTDOWN` table with `Time Left`.)*
 
 ---
 

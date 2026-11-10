@@ -145,23 +145,22 @@ async function selectChainInteractive(defaultChain = 'base') {
 
 async function interactiveMenu() {
   const choice = await selectOptionArrow('Main Menu', [
-    { label: '1) Snipe / Mint Drop', hint: '(Paste address or OpenSea link)', value: '1' },
-    { label: '2) Inspect Drop / Contract', hint: '(Address or link, price, phases)', value: '2' },
-    { label: '3) Live Gas Stream', hint: '(Monitor Base Fee & Priority Gwei)', value: '3' },
-    { label: '4) Check Wallet Balances', hint: '(View all 5 wallets on any chain)', value: '4' },
-    { label: '5) Auto-Fund Sub-Wallets', hint: '(Send gas from Wallet 1 to Wallets 2-5)', value: '5' },
-    { label: '6) Sweep Balances', hint: '(Withdraw leftover ETH to Vault)', value: '6' },
-    { label: '7) Set / Update Wallet Key', hint: '(Save private key 1 to 5)', value: '7' },
-    { label: '8) Set Recipient Cold Vault', hint: '(Direct delivery address)', value: '8' },
-    { label: '0) Exit', hint: 'Close Super Mint', value: '0', key: '0' }
+    { label: '1) Snipe / Mint Drop', hint: '(Paste address or OpenSea link)', value: 'snipe' },
+    { label: '2) Live Gas Stream', hint: '(Monitor Base Fee & Priority Gwei)', value: 'gas' },
+    { label: '3) Check Wallet Balances', hint: '(View all 5 wallets on any chain)', value: 'wallets' },
+    { label: '4) Auto-Fund Sub-Wallets', hint: '(Send gas from Wallet 1 to Wallets 2-5)', value: 'fund' },
+    { label: '5) Sweep Balances', hint: '(Withdraw leftover ETH to Vault)', value: 'sweep' },
+    { label: '6) Set / Update Wallet Key', hint: '(Save private key 1 to 5)', value: 'key' },
+    { label: '7) Set Recipient Cold Vault', hint: '(Direct delivery address)', value: 'recipient' },
+    { label: '0) Exit', hint: 'Close Super Mint', value: 'exit', key: '0' }
   ], { banner: true });
 
-  if (choice === '0' || choice === undefined || choice === null) {
+  if (choice === 'exit' || choice === undefined || choice === null) {
     console.log(`\n  ${c.mintBright}${c.bold}Super Mint${c.reset} ${c.gray}closed.${c.reset}\n`);
     return;
   }
 
-  if (choice === '1') {
+  if (choice === 'snipe') {
     const raw = await askQuestion(`\n  Enter NFT Contract Address or OpenSea / mint link: `);
     if (!raw) {
       ui.log('WARN', 'Contract address required.');
@@ -200,44 +199,29 @@ async function interactiveMenu() {
     return executeSnipe(contract, chain, ids, qty, speed);
   }
 
-  if (choice === '2') {
-    const raw = await askQuestion(`\n  Enter Contract Address or OpenSea / mint link: `);
-    if (!raw) return;
-    const target = await resolveTarget(raw);
-    if (!target.ok) {
-      ui.log('ERROR', target.error);
-      return;
-    }
-    if (target.source !== 'address') {
-      ui.log('OK', `Resolved: ${c.cyan}${target.address}${c.reset}${target.chain ? `  (${target.chain})` : ''}`);
-    }
-    const chain = target.chain || await selectChainInteractive('base');
-    return executeInspect(target.address, chain);
-  }
-
-  if (choice === '3') {
+  if (choice === 'gas') {
     const chain = await selectChainInteractive();
     return executeGas(chain);
   }
 
-  if (choice === '4') {
+  if (choice === 'wallets') {
     const chain = await selectChainInteractive();
     return executeWallets(chain);
   }
 
-  if (choice === '5') {
+  if (choice === 'fund') {
     const amt = await askQuestion(`\n  ETH amount to send to each sub-wallet (e.g. 0.005): `);
     if (!amt) return;
     const chain = await selectChainInteractive();
     return executeFund(amt, chain);
   }
 
-  if (choice === '6') {
+  if (choice === 'sweep') {
     const chain = await selectChainInteractive();
     return executeSweep(chain);
   }
 
-  if (choice === '7') {
+  if (choice === 'key') {
     const slot = await selectOptionArrow('Select Wallet Slot to Configure:', [
       { label: '1) Wallet 1', hint: 'Master funder wallet', value: '1' },
       { label: '2) Wallet 2', hint: 'Sniper sub-wallet 1', value: '2' },
@@ -253,7 +237,7 @@ async function interactiveMenu() {
     return;
   }
 
-  if (choice === '8') {
+  if (choice === 'recipient') {
     const current = walletManager.getRecipient();
     console.log(`\n  Current Vault: ${c.cyan}${current || 'Not set (mints deliver to minter wallets)'}${c.reset}`);
     const addr = await askQuestion(`  Enter new Recipient / Vault address (leave empty to keep current): `);
@@ -462,7 +446,7 @@ async function chooseTargets(allWallets) {
   if (mode === 'cancel') return null;
 
   if (!configured.length) {
-    ui.log('ERROR', `No wallet keys yet. Use ${c.white}7) Set / Update Wallet Key${c.reset} first.`);
+    ui.log('ERROR', `No wallet keys yet. Use ${c.white}6) Set / Update Wallet Key${c.reset} first.`);
     return null;
   }
 
@@ -621,7 +605,7 @@ async function main() {
   ${c.bWhite}${c.bold}DIRECT CLI COMMANDS:${c.reset}
     ${c.bGreen}sniper gas [chain]${c.reset}                   Stream live gas fees (prompts chain if omitted)
     ${c.bGreen}sniper wallets [chain]               ${c.reset}Check all 5 wallet balances
-    ${c.bGreen}sniper inspect [contract|link] [chain] ${c.reset}Inspect drop stages and prices
+    ${c.bGreen}sniper inspect [contract|link] [chain] ${c.reset}Read-only: phases, countdown, eligibility
     ${c.bGreen}sniper snipe [contract|link] [chain]   ${c.reset}Launch zero-latency mint sniper
     ${c.bGreen}sniper fund [amountEth] [chain]      ${c.reset}Auto-fund sub-wallets from Wallet 1
     ${c.bGreen}sniper sweep [chain]                 ${c.reset}Withdraw leftover funds to Vault
