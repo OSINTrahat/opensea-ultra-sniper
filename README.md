@@ -150,7 +150,7 @@ The branded **SUPER MINT** opening page appears, and every action is one keypres
    ███████║╚██████╔╝██║     ███████╗██║  ██║   ██║ ╚═╝ ██║██║██║ ╚████║   ██║
    ╚══════╝ ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝   ╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝   ╚═╝
 
-              S U P E R   M I N T   ·   Atomic Multi-Chain Mint Engine
+              S U P E R   M I N T   ·   Atomic Multi-Chain Mint Engine   ·   by RAHAT
 
   ╭──────────────────────────────────────────────────────────────────────────╮
   │  ◆  MAIN MENU                                                            │

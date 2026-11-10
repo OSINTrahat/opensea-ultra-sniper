@@ -134,7 +134,7 @@ const ui = {
     }
 
     lines.push('');
-    lines.push(center(`${c.iceBlue}${c.bold}S U P E R   M I N T${c.reset}   ${c.gray}·   Atomic Multi-Chain Mint Engine${c.reset}`, w));
+    lines.push(center(`${c.iceBlue}${c.bold}S U P E R   M I N T${c.reset}   ${c.gray}·   Atomic Multi-Chain Mint Engine${c.reset}   ${c.gray}·${c.reset}   ${c.gold}${c.bold}by RAHAT${c.reset}`, w));
     return lines;
   },
 
@@ -180,9 +180,10 @@ const ui = {
     const headTitle = `◆  ${title.toUpperCase()}`;
     const headPad = Math.max(0, innerW - 2 - vlen(headTitle));
 
-    lines.push(rule('╭', '╮'));
-    lines.push(`${border('│')}${c.mintNeon}${c.bold}  ◆  ${c.white}${title.toUpperCase()}${c.reset}${' '.repeat(headPad)}${border('│')}`);
-    lines.push(rule('├', '┤'));
+    const panel = [];
+    panel.push(rule('╭', '╮'));
+    panel.push(`${border('│')}${c.mintNeon}${c.bold}  ◆  ${c.white}${title.toUpperCase()}${c.reset}${' '.repeat(headPad)}${border('│')}`);
+    panel.push(rule('├', '┤'));
 
     options.forEach((opt, idx) => {
       const selected = idx === selectedIndex;
@@ -194,17 +195,23 @@ const ui = {
 
       if (selected) {
         const body = `${c.bgSelected}  ${c.mintBright}${c.bold}❯ ${c.white}${c.bold}${key}${c.bgSelected}   ${c.mintBright}${c.bold}${label}${c.bgSelected}   ${c.cyan}${hint}`;
-        lines.push(`${c.mintDark}│${c.reset}${body}${c.reset}${c.mintDark}│${c.reset}`);
+        panel.push(`${c.mintDark}│${c.reset}${body}${c.reset}${c.mintDark}│${c.reset}`);
       } else {
         const body = `    ${c.mintMid}${key}${c.reset}   ${c.lavender}${label}${c.reset}   ${c.gray}${hint}${c.reset}`;
-        lines.push(`${c.mintDark}│${c.reset}${body}${c.mintDark}│${c.reset}`);
+        panel.push(`${c.mintDark}│${c.reset}${body}${c.mintDark}│${c.reset}`);
       }
     });
 
-    lines.push(rule('├', '┤'));
+    panel.push(rule('├', '┤'));
     const help = '↑↓ move    ↵ select    number keys    q quit';
-    lines.push(`${border('│')}${c.darkGray}  ${pad(help, innerW - 2)}${c.reset}${border('│')}`);
-    lines.push(rule('╰', '╯'));
+    panel.push(`${border('│')}${c.darkGray}  ${pad(help, innerW - 2)}${c.reset}${border('│')}`);
+    panel.push(rule('╰', '╯'));
+
+    // Centre the whole panel under the wordmark, with breathing room above it.
+    const blockW = innerW + 2;
+    const margin = Math.max(0, Math.floor((termW - blockW) / 2));
+    lines.push('');
+    panel.forEach(l => lines.push(' '.repeat(margin) + l));
     lines.push('');
 
     if (showBanner) {
