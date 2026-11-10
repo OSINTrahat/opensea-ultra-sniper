@@ -326,6 +326,8 @@ async function main() {
     const recipientAddr = walletManager.getRecipient();
     const armed = await sniper.armWallets(selectedWallets, contract, isSeaDrop, customData, customPriceWei, null, recipientAddr, quantity, speedTier);
 
+    ui.hudBar(chainKey, config.chains[chainKey].flashbotsRpc ? 'FLASHBOTS (PRIVATE)' : 'MULTI-RPC RACING', '3 NODES RACING', speedTier);
+
     let currentGweiStr = `${liveGas.gwei} Gwei`;
     const stopGasWatcher = gasTracker.watchGas(chainKey, (g) => {
       currentGweiStr = `${g.gwei} Gwei`;
@@ -337,14 +339,14 @@ async function main() {
       const results = await sniper.executeCountdownSnipe(armed, contract, (diffMs) => {
         if (diffMs > 1000 && diffMs % 2000 < 20) {
           const sec = (diffMs / 1000).toFixed(1);
-          process.stdout.write(`\r  ${c.bCyan}[ COUNTDOWN: ${c.bWhite}${sec}s${c.bCyan} ]${c.reset}  ${c.gray}--${c.reset}  Live Gas: ${c.bGreen}${currentGweiStr}${c.reset}  ${c.gray}--${c.reset}  Status: ${c.bgGreen}${c.bold}${c.black} ARMED ${c.reset} `);
+          process.stdout.write(`\r  ${c.bCyan}[ COUNTDOWN: ${c.bWhite}${sec}s${c.bCyan} ]${c.reset}  ${c.gray}|${c.reset}  Gas: ${c.bGreen}${currentGweiStr}${c.reset}  ${c.gray}|${c.reset}  Mempool: ${c.bMagenta}BURST READY${c.reset} `);
         }
       });
       stopGasWatcher();
       console.log(`\n`);
-      ui.section(`SNIPE EXECUTION SUMMARY`);
+      ui.section(`INSTITUTIONAL EXECUTION SUMMARY`);
       ui.renderTable(
-        ['Success', 'Wallet', 'Latency', 'TxHash / Status'],
+        ['Status', 'Wallet', 'Latency', 'Tx Hash / Error'],
         results.map(r => [
           r.success ? ui.badge('SUCCESS') : ui.badge('FAILED'),
           r.wallet,
@@ -352,6 +354,9 @@ async function main() {
           r.hash || r.error || 'N/A'
         ])
       );
+      const successCount = results.filter(r => r.success).length;
+      console.log(`  ${c.bGreen}${c.bold}SUMMARY:${c.reset} ${c.bWhite}${successCount}/${results.length} Mints Confirmed${c.reset} | ${c.cyan}Destination Vault: ${recipientAddr || 'Sub-Wallets'}${c.reset}`);
+      console.log(`  ${c.gray}--------------------------------------------------------------------------------${c.reset}\n`);
     } catch (err) {
       stopGasWatcher();
       console.log(`\n`);
