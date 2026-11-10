@@ -65,5 +65,5 @@ echo ======================================================================
 echo.
 echo Launching OpenSea Ultra Sniper now...
 timeout /t 2 >nul
-node cli.js
+node src\cli.js
 pause

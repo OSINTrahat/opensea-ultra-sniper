@@ -2,15 +2,15 @@
   "name": "opensea-ultra-sniper",
   "version": "1.0.0",
   "description": "High-frequency multi-chain mint sniper for OpenSea SeaDrop and custom smart contracts with multi-node racing and mempool pre-firing.",
-  "main": "cli.js",
+  "main": "src/cli.js",
   "bin": {
-    "sniper": "./cli.js"
+    "sniper": "src/cli.js"
   },
   "scripts": {
-    "start": "node cli.js",
-    "help": "node cli.js help",
-    "gas": "node cli.js gas base",
-    "wallets": "node cli.js wallets base"
+    "start": "node src/cli.js",
+    "help": "node src/cli.js help",
+    "gas": "node src/cli.js gas base",
+    "wallets": "node src/cli.js wallets base"
   },
   "keywords": [
     "nft",
