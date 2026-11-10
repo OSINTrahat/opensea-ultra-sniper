@@ -124,25 +124,61 @@ git clone https://github.com/OSINTrahat/opensea-ultra-sniper.git && cd opensea-u
 
 ---
 
-### 📱 Android Phone Setup Guide (Termux)
+### 📱 Android Phone / Emulator Setup Guide (Termux)
 
 Run the bot directly on your Android phone with zero latency.
 
 #### Step 1: Install Termux
-Install **Termux** from [F-Droid](https://f-droid.org/en/packages/com.termux/) *(Do not use Google Play Store version)*.
+Install **Termux** from [F-Droid](https://f-droid.org/en/packages/com.termux/) *(Do not use the Google Play Store version — it is outdated and its Node.js package is broken)*.
 
-#### Step 2: 1-Line Copy & Paste Setup
-Open Termux and paste this single command:
+#### Step 2: Update all system packages first (never skip this)
+Termux ships old C++/OpenSSL libraries. Skipping this step is the #1 reason installs fail with `cannot locate symbol` errors.
 ```bash
-pkg update -y && pkg install -y nodejs git && git clone https://github.com/OSINTrahat/opensea-ultra-sniper.git && cd opensea-ultra-sniper && npm install && npm link && sniper
+apt update -y && apt full-upgrade -y
 ```
 
-#### Step 3: Launch Anytime
-Whenever you open Termux in the future, just type:
+#### Step 3: Install Node.js + Git
+```bash
+pkg install -y nodejs git
+```
+Check it (must print two version numbers):
+```bash
+node -v && npm -v
+```
+Any `symbol` error here → see [Termux troubleshooting](#termux-troubleshooting) below.
+
+#### Step 4: Download and install the bot
+```bash
+git clone https://github.com/OSINTrahat/opensea-ultra-sniper.git
+```
+```bash
+cd opensea-ultra-sniper
+```
+```bash
+npm install --no-audit --no-fund
+```
+```bash
+npm link
+```
+
+#### Step 5: Launch anytime
 ```bash
 sniper
 ```
-The clean interactive menu will open on your phone screen! You can pick options simply by pressing `1`, `2`, `3` etc.
+The clean interactive menu opens on your phone screen — pick options with `1`, `2`, `3` or the ↑ ↓ arrows. Before a live drop, also run `termux-wake-lock` so Android does not kill the session in the background.
+
+#### Termux troubleshooting
+
+| Error / symptom | Fix |
+|---|---|
+| `cannot locate symbol "__ZNSt6__ndk113__hash_memoryEPKvm"` | `apt update -y && apt full-upgrade -y`, then `pkg install -y --reinstall libc++ nodejs` |
+| `cannot locate symbol "OSSL_PROVIDER_add_conf_parameter"` | `apt update -y && apt full-upgrade -y`, then `pkg install -y --reinstall openssl ca-certificates nodejs` |
+| Both work but a third `symbol` error appears | `pkg install -y nodejs-lts` (Node 22 LTS matches older libraries) |
+| `uname -m` prints `i686` or `armv7l` | 32-bit Android: new Node.js has no 32-bit build — use `nodejs-lts`, or a 64-bit Android 11+ device/emulator |
+| `pkg` downloads slowly / fails | `termux-change-repo` → choose `Main repository` → redo Step 2 |
+| `sniper: command not found` | `echo 'export PATH=$PREFIX/bin:$PATH' >> ~/.bashrc && source ~/.bashrc` |
+
+> **Emulators:** Android emulators on a PC work, but use a **64-bit (`x86_64` / `aarch64`) Android 11+** image. Old 32-bit images cannot run Node.js at all, no matter which command you use.
 
 ---
 
