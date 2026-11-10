@@ -12,6 +12,7 @@ const dropInspector = require('./drop_inspector');
 const UniversalSniper = require('./snipe_engine');
 const gasTracker = require('./gas_tracker');
 const universalDetector = require('./universal_detector');
+const { resolveTarget } = require('./input_resolver');
 const config = require('./sniper_config');
 const ui = require('./ui');
 const { c } = ui;
@@ -32,7 +33,7 @@ function selectOptionArrow(title, options, opts = {}) {
 
   // Non-interactive fallback (piped input / CI): print the screen, read a line.
   if (!stdin.isTTY) {
-    ui.screen(title, options, 0, opts).forEach(l => console.log(l));
+    ui.screen(title, options, opts.startIndex || 0, opts).forEach(l => console.log(l));
     return askQuestion(`  Select: `).then(ans => {
       const key = String(ans).trim();
       const hit = options.find((o, i) => (o.key !== undefined ? String(o.key) : String(i + 1)) === key);
@@ -41,7 +42,7 @@ function selectOptionArrow(title, options, opts = {}) {
   }
 
   return new Promise((resolve) => {
-    let selectedIndex = 0;
+    let selectedIndex = Math.min(Math.max(0, opts.startIndex || 0), options.length - 1);
     let frame = [];
 
     stdin.setRawMode(true);
@@ -109,18 +110,20 @@ function selectOptionArrow(title, options, opts = {}) {
 }
 
 async function selectChainInteractive(defaultChain = 'base') {
-  return selectOptionArrow('Select Blockchain Network:', [
+  const opts = [
     { label: '1) Base', hint: '(Chain ID: 8453) [Recommended / Ultra-Cheap]', value: 'base' },
     { label: '2) Ethereum', hint: '(Chain ID: 1) [Flashbots Protect MEV]', value: 'ethereum' },
     { label: '3) Robinhood', hint: '(Chain ID: 48)', value: 'robinhood' },
     { label: '4) Ink Chain', hint: '(Chain ID: 57073)', value: 'ink' }
-  ]);
+  ];
+  const start = Math.max(0, opts.findIndex(o => o.value === defaultChain));
+  return selectOptionArrow('Select Blockchain Network:', opts, { startIndex: start });
 }
 
 async function interactiveMenu() {
   const choice = await selectOptionArrow('Main Menu', [
-    { label: '1) Snipe / Mint Drop', hint: '(Pre-sign & atomic blast at 0ms)', value: '1' },
-    { label: '2) Inspect Drop / Contract', hint: '(Phases, start time, price, limits)', value: '2' },
+    { label: '1) Snipe / Mint Drop', hint: '(Paste address or OpenSea link)', value: '1' },
+    { label: '2) Inspect Drop / Contract', hint: '(Address or link, price, phases)', value: '2' },
     { label: '3) Live Gas Stream', hint: '(Monitor Base Fee & Priority Gwei)', value: '3' },
     { label: '4) Check Wallet Balances', hint: '(View all 5 wallets on any chain)', value: '4' },
     { label: '5) Auto-Fund Sub-Wallets', hint: '(Send gas from Wallet 1 to Wallets 2-5)', value: '5' },
@@ -136,12 +139,21 @@ async function interactiveMenu() {
   }
 
   if (choice === '1') {
-    const contract = await askQuestion(`\n  Enter NFT Contract Address: `);
-    if (!contract) {
+    const raw = await askQuestion(`\n  Enter NFT Contract Address or OpenSea / mint link: `);
+    if (!raw) {
       ui.log('WARN', 'Contract address required.');
       return;
     }
-    const chain = await selectChainInteractive();
+    const target = await resolveTarget(raw);
+    if (!target.ok) {
+      ui.log('ERROR', target.error);
+      return;
+    }
+    if (target.source !== 'address') {
+      ui.log('OK', `Resolved: ${c.cyan}${target.address}${c.reset}${target.chain ? `  (${target.chain})` : ''}`);
+    }
+    const contract = target.address;
+    const chain = target.chain || await selectChainInteractive('base');
     const qtyStr = await askQuestion(`  Quantity per wallet (default: 1): `);
     const qty = parseInt(qtyStr, 10) || 1;
     
@@ -155,10 +167,18 @@ async function interactiveMenu() {
   }
 
   if (choice === '2') {
-    const contract = await askQuestion(`\n  Enter Contract Address to inspect: `);
-    if (!contract) return;
-    const chain = await selectChainInteractive();
-    return executeInspect(contract, chain);
+    const raw = await askQuestion(`\n  Enter Contract Address or OpenSea / mint link: `);
+    if (!raw) return;
+    const target = await resolveTarget(raw);
+    if (!target.ok) {
+      ui.log('ERROR', target.error);
+      return;
+    }
+    if (target.source !== 'address') {
+      ui.log('OK', `Resolved: ${c.cyan}${target.address}${c.reset}${target.chain ? `  (${target.chain})` : ''}`);
+    }
+    const chain = target.chain || await selectChainInteractive('base');
+    return executeInspect(target.address, chain);
   }
 
   if (choice === '3') {
@@ -450,8 +470,8 @@ async function main() {
   ${c.bWhite}${c.bold}DIRECT CLI COMMANDS:${c.reset}
     ${c.bGreen}sniper gas [chain]${c.reset}                   Stream live gas fees (prompts chain if omitted)
     ${c.bGreen}sniper wallets [chain]               ${c.reset}Check all 5 wallet balances
-    ${c.bGreen}sniper inspect [contract] [chain]    ${c.reset}Inspect drop stages and prices
-    ${c.bGreen}sniper snipe [contract] [chain]      ${c.reset}Launch zero-latency mint sniper
+    ${c.bGreen}sniper inspect [contract|link] [chain] ${c.reset}Inspect drop stages and prices
+    ${c.bGreen}sniper snipe [contract|link] [chain]   ${c.reset}Launch zero-latency mint sniper
     ${c.bGreen}sniper fund [amountEth] [chain]      ${c.reset}Auto-fund sub-wallets from Wallet 1
     ${c.bGreen}sniper sweep [chain]                 ${c.reset}Withdraw leftover funds to Vault
     ${c.bGreen}sniper set-wallet <1-5> <key>        ${c.reset}Save or update private key
@@ -520,19 +540,36 @@ async function main() {
 
   // 9. Direct Inspect
   if (command === 'inspect') {
-    let contract = args[1];
-    if (!contract) contract = await askQuestion(`  Enter NFT Contract address: `);
+    let raw = args[1];
+    if (!raw) raw = await askQuestion(`  Enter NFT contract address or OpenSea / mint link: `);
+    const target = await resolveTarget(raw);
+    if (!target.ok) {
+      ui.log('ERROR', target.error);
+      return;
+    }
+    if (target.source !== 'address') {
+      ui.log('OK', `Resolved: ${target.address}${target.chain ? `  (${target.chain})` : ''}`);
+    }
     let chainKey = args[2];
-    if (!chainKey) chainKey = await selectChainInteractive();
-    return executeInspect(contract, chainKey);
+    if (!chainKey) chainKey = target.chain || await selectChainInteractive('base');
+    return executeInspect(target.address, chainKey);
   }
 
   // 10. Direct Snipe
   if (command === 'snipe') {
-    let contract = args[1];
-    if (!contract) contract = await askQuestion(`  Enter Contract Address to snipe: `);
+    let raw = args[1];
+    if (!raw) raw = await askQuestion(`  Enter contract address or OpenSea / mint link: `);
+    const target = await resolveTarget(raw);
+    if (!target.ok) {
+      ui.log('ERROR', target.error);
+      return;
+    }
+    if (target.source !== 'address') {
+      ui.log('OK', `Resolved: ${target.address}${target.chain ? `  (${target.chain})` : ''}`);
+    }
+    const contract = target.address;
     let chainKey = args[2];
-    if (!chainKey) chainKey = await selectChainInteractive();
+    if (!chainKey) chainKey = target.chain || await selectChainInteractive('base');
     let targetMode = args[3] || 'all';
     
     let quantity = 1;

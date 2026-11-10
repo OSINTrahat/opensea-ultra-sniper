@@ -175,7 +175,9 @@ The branded **SUPER MINT** opening page appears, and every action is one keypres
 - **Number keys:** press `1`–`8` (or `0` to exit) and it selects instantly.
 - **Vim keys:** `j` / `k` move, `q` quits.
 
-Every sub-screen (network picker, speed tier, wallet slot) uses the same arrow-key picker, so there is nothing to type except the contract address and quantities.
+Every sub-screen (network picker, speed tier, wallet slot) uses the same arrow-key picker, so there is nothing to type except the contract and quantities.
+
+**Contract input:** when it asks for the contract, paste either the raw `0x…` address or an OpenSea / Basescan / mint-page link — the bot extracts the address and, when the link contains one, switches to that chain automatically.
 
 ---
 
@@ -357,20 +359,33 @@ Network Gas: 0.011 Gwei (~0.000002 ETH per mint)
 ### 5. Atomic Sniper Execution (`snipe`)
 Arms pre-signed transactions, tracks live gas continuously during countdown, and fires at the 50ms pre-fire buffer across all configured RPC nodes.
 
+**Input accepts either a raw contract address *or* a link.** Paste what you have; the bot extracts the contract and detects the chain:
+
+| You paste | What happens |
+|---|---|
+| `0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D` | used directly, you pick the chain |
+| `https://opensea.io/assets/base/0x…/123` | contract + `base` detected automatically |
+| `https://opensea.io/collection/boredapeyachtclub` | contract read from the collection page |
+| `https://basescan.org/address/0x…` | contract + `base` detected |
+| `https://zora.co/collect/base:0x…` | contract + `base` detected |
+
+If a page hides its contract (rare), the bot says so and asks for the `0x…` address instead.
+
 #### Mode A: 5-Wallet Parallel Burst (Recommended)
 Blasts transactions simultaneously across all configured wallets.
 ```bash
-sniper snipe <contractAddress> <chain> all
+sniper snipe <contractAddress | link> <chain> all
 ```
 **Example:**
 ```bash
 sniper snipe 0x1234567890abcdef1234567890abcdef12345678 base all
+sniper snipe https://opensea.io/assets/base/0x889c162A52277d332F09025eB0E63b36E08f9064/1
 ```
 
 #### Mode B: Single Target Wallet
 Executes the snipe using only a specific wallet slot (e.g. Wallet 1).
 ```bash
-sniper snipe <contractAddress> <chain> 1
+sniper snipe <contractAddress | link> <chain> 1
 ```
 
 **Execution Flow Output:**
