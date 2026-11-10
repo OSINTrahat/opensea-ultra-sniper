@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="preview.png" alt="Super Mint terminal — main menu" width="980">
+  <img src="preview.png" alt="Super Mint terminal — main menu" width="820">
 </p>
 
 <p align="center">
