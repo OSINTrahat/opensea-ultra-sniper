@@ -11,14 +11,13 @@
   <img src="preview.png" alt="Super Mint terminal menu" width="860">
 </p>
 
-<p align="center">
-  <a href="#installation--setup"><img src="https://img.shields.io/badge/Start-1--click%20install-2ee6a8?style=for-the-badge" alt="Start"></a>
-  <img src="https://img.shields.io/badge/Node-%3E%3D18-7dffc4?style=for-the-badge&logo=node.js&logoColor=06120f" alt="Node">
-  <img src="https://img.shields.io/badge/Chains-Base%20|%20Ethereum%20|%20Robinhood%20|%20Ink-22b8a0?style=for-the-badge" alt="Chains">
-  <img src="https://img.shields.io/badge/License-MIT-e7c66b?style=for-the-badge" alt="MIT">
-</p>
-
 # SUPER MINT — Multi-Chain Ultra-Fast NFT Mint Sniper
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Node: >=18.0.0](https://img.shields.io/badge/Node->=18.0.0-green.svg)](https://nodejs.org/)
+[![Protocol: SeaDrop_v1](https://img.shields.io/badge/Protocol-SeaDrop_v1-orange.svg)](https://opensea.io)
+[![Architecture: Multi--Node_Racing](https://img.shields.io/badge/Architecture-Multi--Node_Racing-purple.svg)]()
+[![UI: Terminal](https://img.shields.io/badge/UI-Arrow--Key_Terminal-2ea043.svg)]()
 
 High-frequency, institutional-grade automated minting suite engineered to execute sub-second transactions on OpenSea SeaDrop V1 contracts and generic Web3 smart contracts. Designed to outperform conventional minting scripts through in-memory cryptographic pre-signing, multi-RPC racing, and atomic countdown synchronization.
 
