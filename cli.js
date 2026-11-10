@@ -19,45 +19,55 @@ async function main() {
   const args = process.argv.slice(2);
   const command = args[0];
 
-  if (!command || command === 'help') {
+  if (!command || command === 'help' || command === '--help' || command === '-h') {
     ui.banner();
     console.log(`
-  ${c.bYellow}${c.bold}SUPPORTED NETWORKS:${c.reset}
-    ${c.gray}*${c.reset} ${c.cyan}ethereum${c.reset}  ${c.gray}Mainnet (Chain ID: 1)${c.reset}
-    ${c.gray}*${c.reset} ${c.cyan}base${c.reset}      ${c.gray}Base Mainnet (Chain ID: 8453)${c.reset}
-    ${c.gray}*${c.reset} ${c.cyan}robinhood${c.reset} ${c.gray}Robinhood Chain (Chain ID: 48)${c.reset}
-    ${c.gray}*${c.reset} ${c.cyan}ink${c.reset}       ${c.gray}Ink Chain (Chain ID: 57073)${c.reset}
+  ${c.bWhite}${c.bold}TOTAL COMMANDS: 8${c.reset}  ${c.gray}(Run any command without args for quick help)${c.reset}
+  ${c.gray}------------------------------------------------------${c.reset}
 
-  ${c.bYellow}${c.bold}AVAILABLE COMMANDS:${c.reset}
-    ${c.bGreen}node cli.js set-wallet <1-5> <privateKey>${c.reset}
-        ${c.gray}Configure or update private key for wallet 1 through 5.${c.reset}
+  ${c.bYellow}${c.bold}[ 1. WALLET SETUP & MANAGEMENT ]${c.reset}
+  ${c.bGreen}node cli.js set-wallet <1-5> <privateKey>${c.reset}
+      Configure or update private key for wallet 1 through 5.
+      ${c.gray}Example: node cli.js set-wallet 1 0xac0974bec39a17e36ba4a6b4...${c.reset}
 
-    ${c.bGreen}node cli.js recipient [address]${c.reset}
-        ${c.gray}View or set main Vault/Receiver address for all minted NFTs & swept funds.${c.reset}
+  ${c.bGreen}node cli.js recipient [address]${c.reset}
+      View or set main Vault/Receiver address. All minted NFTs and swept
+      funds go straight to this cold wallet.
+      ${c.gray}Example: node cli.js recipient 0xYourMainVaultAddress${c.reset}
 
-    ${c.bGreen}node cli.js fund <amountEth> [chain]${c.reset}
-        ${c.gray}Auto-fund Wallets 2-5 from Wallet 1 (Master) with exact ETH in 1 command.${c.reset}
+  ${c.bGreen}node cli.js wallets [chain]${c.reset}
+      Check real-time native ETH balances and readiness of all 5 wallets.
+      ${c.gray}Example: node cli.js wallets base${c.reset}
 
-    ${c.bGreen}node cli.js sweep [chain]${c.reset}
-        ${c.gray}Sweep remaining ETH from sub-wallets back to Master / Recipient Vault.${c.reset}
+  ${c.bYellow}${c.bold}[ 2. AUTOMATIC GAS DISPATCH & RECOVERY ]${c.reset}
+  ${c.bGreen}node cli.js fund <amountEth> [chain]${c.reset}
+      Auto-distribute gas from Master Wallet 1 to Sub-Wallets 2-5 in 1 command.
+      ${c.gray}Example: node cli.js fund 0.005 base${c.reset}
 
-    ${c.bGreen}node cli.js wallets [chain]${c.reset}
-        ${c.gray}Query real-time native ETH balances across all 5 wallets.${c.reset}
+  ${c.bGreen}node cli.js sweep [chain]${c.reset}
+      Sweep leftover ETH from sub-wallets back to Master / Recipient Vault.
+      ${c.gray}Example: node cli.js sweep base${c.reset}
 
-    ${c.bGreen}node cli.js gas [chain]${c.reset}
-        ${c.gray}Stream network Base Fee, Priority Fee, and estimated mint gas.${c.reset}
+  ${c.bYellow}${c.bold}[ 3. MONITORING & DROP INSPECTION ]${c.reset}
+  ${c.bGreen}node cli.js gas [chain]${c.reset}
+      Live stream Base Fee, Priority Fee, and estimated mint costs every 2.5s.
+      ${c.gray}Example: node cli.js gas base${c.reset}
 
-    ${c.bGreen}node cli.js inspect <contractAddress> [chain]${c.reset}
-        ${c.gray}Inspect all drop phases (GTD, FCFS, Public), prices, and wallet readiness.${c.reset}
+  ${c.bGreen}node cli.js inspect <contractAddress> [chain]${c.reset}
+      Inspect drop schedules (GTD, FCFS, Public), prices, limits, and wallet checks.
+      ${c.gray}Example: node cli.js inspect 0x889c162A52277d332F09025eB0E63b36E08f9064 base${c.reset}
 
-    ${c.bGreen}node cli.js snipe <contractAddress> [chain] [walletId or 'all'] [--qty N] [--speed fast|turbo|war]${c.reset}
-        ${c.gray}Pre-sign, stream live Gwei during countdown, and atomic snipe at 0ms.${c.reset}
+  ${c.bYellow}${c.bold}[ 4. ULTRA-FAST ZERO-LATENCY SNIPING ]${c.reset}
+  ${c.bGreen}node cli.js snipe <contractAddress> [chain] [walletId or 'all'] [--qty N] [--speed fast|turbo|war]${c.reset}
+      Pre-sign transactions into memory, stream countdown, and burst fire at 0ms.
+      ${c.gray}Options:${c.reset}
+        --qty <N>              Number of NFTs per wallet (Default: 1)
+        --speed fast|turbo|war Priority fee boost (+0%, +35%, +100%)
+      ${c.gray}Example: node cli.js snipe 0x889c...9064 base all --qty 2 --speed turbo${c.reset}
 
-  ${c.bYellow}${c.bold}QUICK EXAMPLES:${c.reset}
-    ${c.white}node cli.js fund 0.005 base${c.reset}
-    ${c.white}node cli.js recipient 0xYourMainVaultAddress${c.reset}
-    ${c.white}node cli.js snipe 0x1234...5678 base all --qty 2 --speed turbo${c.reset}
-    ${c.white}node cli.js sweep base${c.reset}
+  ${c.bYellow}${c.bold}[ SUPPORTED NETWORKS ]${c.reset}
+    ${c.cyan}ethereum${c.reset} (1)  |  ${c.cyan}base${c.reset} (8453)  |  ${c.cyan}robinhood${c.reset} (48)  |  ${c.cyan}ink${c.reset} (57073)
+  ${c.gray}------------------------------------------------------${c.reset}
 `);
     return;
   }
