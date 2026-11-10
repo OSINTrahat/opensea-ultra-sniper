@@ -130,7 +130,15 @@ npm install
 # 3. Enable global shortcut command
 npm link
 ```
-*Note for PowerShell:* If you get a policy restriction running `npm link`, run `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned` or simply use `node cli.js`.
+
+> [!TIP]
+> **Windows PowerShell Note (`npm.ps1 cannot be loaded`):**
+> Windows blocks scripts in PowerShell by default. If you see this red error:
+> - **Option 1 (Easiest):** Just open **Command Prompt (CMD)** instead of PowerShell. CMD has no script restrictions!
+> - **Option 2 (Fix PowerShell permanently):** Run this 1-line command in PowerShell and press `Y`:
+>   ```powershell
+>   Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+>   ```
 
 ---
 
