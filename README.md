@@ -92,90 +92,53 @@ The suite natively supports the following EVM networks with pre-configured high-
 
 ### 🪟 Windows Setup Guide (PC / Laptop)
 
-#### 🚀 Method 1: 1-Click Auto Setup (Zero Coding / Easiest)
-1. **[Click here to Download ZIP](https://github.com/OSINTrahat/opensea-ultra-sniper/archive/refs/heads/main.zip)** and extract the folder.
-2. Make sure [Node.js](https://nodejs.org/) is installed.
-3. Double-click **`setup.bat`** — it will automatically install everything for you!
+#### ⚡ Fast 1-Command Setup (Copy & Paste in Command Prompt / CMD)
+Open **Command Prompt (CMD)** and paste this single line:
+```cmd
+git clone https://github.com/OSINTrahat/opensea-ultra-sniper.git && cd opensea-ultra-sniper && npm install && npm link && sniper
+```
+*That's it! The bot will download, install dependencies, link globally, and launch automatically!*
+
+---
+
+#### 🖱️ No Git / No Code Setup (Double-Click Method)
+1. **[Click here to Download ZIP](https://github.com/OSINTrahat/opensea-ultra-sniper/archive/refs/heads/main.zip)** and extract it.
+2. (Make sure you have [Node.js](https://nodejs.org/) installed).
+3. Double-click **`setup.bat`** (installs everything automatically).
 4. Double-click **`run.bat`** anytime to launch the bot!
 
 ---
 
-#### 💻 Method 2: Command Prompt / PowerShell Setup
-Open **CMD** inside the folder and run:
-```cmd
-npm install
-npm link
-```
-Now simply type:
-```cmd
-sniper
-```
+#### ⚠️ Windows Troubleshooting (Common Errors & 1-Second Fixes):
+- **Error: `'git' is not recognized`**
+  - Install Git in 1 second via PowerShell:
+    ```powershell
+    winget install --id Git.Git -e --source winget
+    ```
+  - *Or simply use the Double-Click Method above (no Git required).*
+- **Error: `'npm.ps1 cannot be loaded'` (PowerShell)**
+  - Use **Command Prompt (CMD)** instead, or run this in PowerShell:
+    ```powershell
+    Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+    ```
 
 ---
 
-#### 🛠️ Method 3: Using Git Clone (For Developers)
+### 📱 Android Phone Setup Guide (Termux)
 
-> [!IMPORTANT]
-> **Git MUST be installed** on your computer before running `git clone`. If you don't have Git installed, Windows will show an error: `'git' is not recognized`.
-> - **Download & Install Git:** [git-scm.com/download/win](https://git-scm.com/download/win)
-> - **Or install in 1 second via PowerShell:**
->   ```powershell
->   winget install --id Git.Git -e --source winget
->   ```
-> *(Restart your terminal after installing Git)*
+Run the bot directly on your Android phone with zero latency.
 
-Once Git is installed, run:
-```powershell
-# 1. Clone the repository
-git clone https://github.com/OSINTrahat/opensea-ultra-sniper.git
-cd opensea-ultra-sniper
+#### Step 1: Install Termux
+Install **Termux** from [F-Droid](https://f-droid.org/en/packages/com.termux/) *(Do not use Google Play Store version)*.
 
-# 2. Install dependencies
-npm install
-
-# 3. Enable global shortcut command
-npm link
-```
-
-> [!TIP]
-> **Windows PowerShell Note (`npm.ps1 cannot be loaded`):**
-> Windows blocks scripts in PowerShell by default. If you see this red error:
-> - **Option 1 (Easiest):** Just open **Command Prompt (CMD)** instead of PowerShell. CMD has no script restrictions!
-> - **Option 2 (Fix PowerShell permanently):** Run this 1-line command in PowerShell and press `Y`:
->   ```powershell
->   Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
->   ```
-
----
-
-### 📱 Android Phone Setup Guide (Using Termux)
-
-You can run this ultra-sniper directly from your Android phone anywhere with zero latency using Termux!
-
-#### 1. Install Termux:
-- Download and install **Termux** from [F-Droid](https://f-droid.org/en/packages/com.termux/) (Do NOT use the outdated Google Play Store version).
-
-#### 2. Open Termux and run the following setup commands:
+#### Step 2: 1-Line Copy & Paste Setup
+Open Termux and paste this single command:
 ```bash
-# Update Termux packages
-pkg update -y && pkg upgrade -y
-
-# Install Node.js, Git, and build tools
-pkg install -y nodejs git
-
-# Clone the repository
-git clone https://github.com/OSINTrahat/opensea-ultra-sniper.git
-cd opensea-ultra-sniper
-
-# Install dependencies
-npm install
-
-# Enable global command
-npm link
+pkg update -y && pkg install -y nodejs git && git clone https://github.com/OSINTrahat/opensea-ultra-sniper.git && cd opensea-ultra-sniper && npm install && npm link && sniper
 ```
 
-#### 3. Ready to Launch:
-Now just type:
+#### Step 3: Launch Anytime
+Whenever you open Termux in the future, just type:
 ```bash
 sniper
 ```
