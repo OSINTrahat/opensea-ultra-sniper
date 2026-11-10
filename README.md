@@ -92,35 +92,23 @@ The suite natively supports the following EVM networks with pre-configured high-
 
 ### 🪟 Windows Setup Guide (PC / Laptop)
 
-#### ⚡ Fast 1-Command Setup (Copy & Paste in Command Prompt / CMD)
+#### 🚀 1-Click Zero-Touch Auto Installer (Recommended for Everyone)
+No coding, no manual installs, no error troubleshooting!
+1. **[Click here to Download ZIP](https://github.com/OSINTrahat/opensea-ultra-sniper/archive/refs/heads/main.zip)** and extract the folder.
+2. Double-click **`setup.bat`**
+   - *It automatically unblocks PowerShell permissions.*
+   - *It automatically checks and installs Git if missing.*
+   - *It automatically checks and installs Node.js if missing.*
+   - *It installs all bot packages and launches the bot automatically!*
+3. Afterwards, simply double-click **`run.bat`** (or type `sniper`) anytime to start!
+
+---
+
+#### ⚡ Fast 1-Command Setup (For Terminal Users)
 Open **Command Prompt (CMD)** and paste this single line:
 ```cmd
 git clone https://github.com/OSINTrahat/opensea-ultra-sniper.git && cd opensea-ultra-sniper && npm install && npm link && sniper
 ```
-*That's it! The bot will download, install dependencies, link globally, and launch automatically!*
-
----
-
-#### 🖱️ No Git / No Code Setup (Double-Click Method)
-1. **[Click here to Download ZIP](https://github.com/OSINTrahat/opensea-ultra-sniper/archive/refs/heads/main.zip)** and extract it.
-2. (Make sure you have [Node.js](https://nodejs.org/) installed).
-3. Double-click **`setup.bat`** (installs everything automatically).
-4. Double-click **`run.bat`** anytime to launch the bot!
-
----
-
-#### ⚠️ Windows Troubleshooting (Common Errors & 1-Second Fixes):
-- **Error: `'git' is not recognized`**
-  - Install Git in 1 second via PowerShell:
-    ```powershell
-    winget install --id Git.Git -e --source winget
-    ```
-  - *Or simply use the Double-Click Method above (no Git required).*
-- **Error: `'npm.ps1 cannot be loaded'` (PowerShell)**
-  - Use **Command Prompt (CMD)** instead, or run this in PowerShell:
-    ```powershell
-    Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
-    ```
 
 ---
 
