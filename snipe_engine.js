@@ -158,7 +158,7 @@ class UniversalSniper {
             try {
               const res = await this.broadcaster.raceBroadcast(armed.rawTx);
               const elapsed = Date.now() - sendStart;
-              ui.log('OK', `[${c.bold}${armed.name}${c.reset}] Accepted in ${c.bGreen}${elapsed}ms${c.reset} ${c.gray}â”‚${c.reset} Hash: ${c.cyan}${res.hash || 'Accepted'}${c.reset}`);
+              ui.log('OK', `[${c.bold}${armed.name}${c.reset}] Accepted in ${c.bGreen}${elapsed}ms${c.reset} ${c.gray}|${c.reset} Hash: ${c.cyan}${res.hash || 'Accepted'}${c.reset}`);
               return { success: true, wallet: armed.name, hash: res.hash || 'Accepted', latencyMs: elapsed };
             } catch (err) {
               ui.log('ERROR', `[${armed.name}] ${err.message}`);

@@ -105,11 +105,14 @@ async function main() {
       ui.log('WARN', `Usage: ${c.white}node cli.js fund <amountEth> [chain]${c.reset}`);
       return;
     }
-    ui.section(`AUTO-FUND SUB-WALLETS â€¢ ${chainKey.toUpperCase()}`);
+    ui.section(`AUTO-FUND SUB-WALLETS | ${chainKey.toUpperCase()}`);
     ui.log('INFO', `Dispatching ${c.bGreen}${amt} ETH${c.reset} from Wallet 1 (Master) to Wallets 2-5...`);
     try {
       const res = await walletManager.fundSubWallets(amt, chainKey);
-      console.table(res);
+      ui.renderTable(
+        ['Wallet', 'Address', 'Amount', 'Status', 'Tx Hash'],
+        res.map(r => [r.Wallet, r.Address, r.Amount, ui.badge(r.Status), r.TxHash || r.Error || 'N/A'])
+      );
     } catch (err) {
       ui.log('ERROR', err.message);
     }
@@ -119,43 +122,43 @@ async function main() {
   // 4. Sweep / Withdraw
   if (command === 'sweep' || command === 'withdraw') {
     const chainKey = args[1] || 'base';
-    ui.section(`SWEEPER / WITHDRAW â€¢ ${chainKey.toUpperCase()}`);
+    ui.section(`SWEEPER / WITHDRAW | ${chainKey.toUpperCase()}`);
     ui.log('INFO', `Sweeping leftover balances from sub-wallets to Recipient Vault...`);
     try {
       const res = await walletManager.sweepFunds(chainKey);
-      console.table(res);
+      ui.renderTable(
+        ['Wallet', 'Address', 'Amount Swept', 'Status'],
+        res.map(r => [r.Wallet, r.Address, r.Swept, ui.badge(r.Status)])
+      );
     } catch (err) {
       ui.log('ERROR', err.message);
     }
     return;
   }
 
-  // 2. Wallets balance
+  // 5. Wallets balance
   if (command === 'wallets') {
     const chainKey = args[1] || 'base';
-    ui.section(`5-WALLET BALANCES â€¢ ${chainKey.toUpperCase()}`);
+    ui.section(`5-WALLET BALANCES | ${chainKey.toUpperCase()}`);
     const list = await walletManager.checkBalances(chainKey);
-    console.table(list.map(w => ({
-      ID: w.ID,
-      Name: w.Name,
-      Address: w.Address,
-      Balance: w.Balance,
-      Status: w.Status === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE'
-    })));
+    ui.renderTable(
+      ['ID', 'Name', 'Address', 'Balance', 'Status'],
+      list.map(w => [w.ID, w.Name, w.Address, w.Balance, ui.badge(w.Status)])
+    );
     return;
   }
 
   // 3. Live Gas Monitor
   if (command === 'gas') {
     const chainKey = args[1] || 'base';
-    ui.section(`LIVE GAS STREAM â€¢ ${chainKey.toUpperCase()}`);
+    ui.section(`LIVE GAS STREAM | ${chainKey.toUpperCase()}`);
     ui.log('INFO', `Polling every 2.5s via multi-RPC failover. Press ${c.bYellow}Ctrl+C${c.reset} to exit.\n`);
     gasTracker.watchGas(chainKey, (data) => {
       const time = new Date().toLocaleTimeString();
       const gweiStr = `${c.bGreen}${data.gwei} Gwei${c.reset}`;
       const prioStr = `${c.cyan}${data.priorityGwei} Gwei${c.reset}`;
       const costStr = `${c.bYellow}~${data.estimatedCostEth} ${data.symbol}${c.reset}`;
-      console.log(`  ${c.gray}[${time}]${c.reset}  Base: ${gweiStr}  ${c.gray}â”‚${c.reset}  Priority: ${prioStr}  ${c.gray}â”‚${c.reset}  Est. Mint Gas: ${costStr}`);
+      console.log(`  ${c.gray}[${time}]${c.reset}  Base: ${gweiStr}  ${c.gray}|${c.reset}  Priority: ${prioStr}  ${c.gray}|${c.reset}  Est. Mint Gas: ${costStr}`);
     });
     return;
   }
@@ -169,7 +172,7 @@ async function main() {
       return;
     }
 
-    ui.section(`CONTRACT INSPECTOR â€¢ ${chainKey.toUpperCase()}`);
+    ui.section(`CONTRACT INSPECTOR | ${chainKey.toUpperCase()}`);
     ui.log('INFO', `Analyzing contract: ${c.cyan}${contract}${c.reset}`);
 
     const [wallets, liveGas, detection] = await Promise.all([
@@ -194,28 +197,34 @@ async function main() {
 
       ui.section(`SCHEDULED DROP PHASES (GTD / FCFS / PUBLIC)`);
       if (result.phases.length > 0) {
-        console.table(result.phases.map((p, idx) => ({
-          Phase: `#${idx + 1}: ${p.phaseName}`,
-          Price: p.priceEth,
-          StartTime: p.startTime,
-          EndTime: p.endTime,
-          MaxMint: p.maxPerWallet,
-          Status: p.status
-        })));
+        ui.renderTable(
+          ['Phase', 'Price', 'Start Time', 'End Time', 'Max Mint', 'Status'],
+          result.phases.map((p, idx) => [
+            `#${idx + 1}: ${p.phaseName}`,
+            p.priceEth,
+            p.startTime,
+            p.endTime,
+            String(p.maxPerWallet),
+            ui.badge(p.status)
+          ])
+        );
       } else {
         ui.log('INFO', 'No active SeaDrop schedules registered for this contract.');
       }
 
       ui.section(`5-WALLET READINESS & FEE VERIFICATION`);
-      console.table(result.wallets.map(w => ({
-        Wallet: `${w.id}: ${w.name}`,
-        Address: w.address,
-        TargetPhase: w.targetSlot,
-        Balance: w.currentBalance,
-        MintPrice: w.pricePerMint,
-        HasFee: w.hasFee,
-        Readiness: w.readyToSnipe
-      })));
+      ui.renderTable(
+        ['Wallet', 'Address', 'Target Phase', 'Balance', 'Mint Price', 'Fee Ready', 'Status'],
+        result.wallets.map(w => [
+          `${w.id}: ${w.name}`,
+          w.address,
+          w.targetSlot,
+          w.currentBalance,
+          w.pricePerMint,
+          ui.badge(w.hasFee ? 'YES' : 'NO'),
+          ui.badge(w.readyToSnipe)
+        ])
+      );
     } else {
       console.log(`\n  ${c.bYellow}${c.bold}CUSTOM CONTRACT METADATA${c.reset}`);
       ui.infoRow('Network', chainKey.toUpperCase());
@@ -228,13 +237,16 @@ async function main() {
 
       ui.section(`5-WALLET READINESS & FEE VERIFICATION`);
       const reqPrice = parseFloat(detection.estimatedPriceEth || '0');
-      console.table(wallets.map(w => ({
-        Wallet: `${w.id}: ${w.name}`,
-        Address: w.address || 'Unconfigured',
-        MintPrice: `${reqPrice} ETH`,
-        HasFee: w.privateKey ? 'YES' : 'NO',
-        Readiness: w.privateKey ? 'READY' : 'NO_KEY'
-      })));
+      ui.renderTable(
+        ['Wallet', 'Address', 'Mint Price', 'Key Loaded', 'Status'],
+        wallets.map(w => [
+          `${w.id}: ${w.name}`,
+          w.address || 'Unconfigured',
+          `${reqPrice} ETH`,
+          ui.badge(w.privateKey ? 'YES' : 'NO'),
+          ui.badge(w.privateKey ? 'READY' : 'NO_KEY')
+        ])
+      );
     }
 
     return;
@@ -277,7 +289,7 @@ async function main() {
     const sniper = new UniversalSniper(chainKey);
 
     const liveGas = await gasTracker.getLiveGas(chainKey);
-    ui.log('GAS', `Network Gas: ${c.bGreen}${liveGas.gwei} Gwei${c.reset} ${c.gray}â”‚${c.reset} Priority: ${c.cyan}${liveGas.priorityGwei} Gwei${c.reset} ${c.gray}â”‚${c.reset} Est Fee: ${c.bYellow}~${liveGas.estimatedCostEth} ${liveGas.symbol}${c.reset}`);
+    ui.log('GAS', `Network Gas: ${c.bGreen}${liveGas.gwei} Gwei${c.reset} ${c.gray}|${c.reset} Priority: ${c.cyan}${liveGas.priorityGwei} Gwei${c.reset} ${c.gray}|${c.reset} Est Fee: ${c.bYellow}~${liveGas.estimatedCostEth} ${liveGas.symbol}${c.reset}`);
 
     ui.log('INFO', `Inspecting target contract bytecode on ${c.cyan}${chainKey.toUpperCase()}${c.reset}...`);
     const detection = await universalDetector.detectContractMintMethod(contract, chainKey);
@@ -331,12 +343,15 @@ async function main() {
       stopGasWatcher();
       console.log(`\n`);
       ui.section(`SNIPE EXECUTION SUMMARY`);
-      console.table(results.map(r => ({
-        Success: r.success ? 'TRUE' : 'FALSE',
-        Wallet: r.wallet,
-        Latency: r.latencyMs ? `${r.latencyMs}ms` : 'N/A',
-        TxHash: r.hash || r.error
-      })));
+      ui.renderTable(
+        ['Success', 'Wallet', 'Latency', 'TxHash / Status'],
+        results.map(r => [
+          r.success ? ui.badge('SUCCESS') : ui.badge('FAILED'),
+          r.wallet,
+          r.latencyMs ? `${r.latencyMs}ms` : 'N/A',
+          r.hash || r.error || 'N/A'
+        ])
+      );
     } catch (err) {
       stopGasWatcher();
       console.log(`\n`);

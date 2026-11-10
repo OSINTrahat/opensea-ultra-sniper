@@ -91,6 +91,49 @@ ${c.bCyan}${c.bold}+============================================================
     console.log(`  ${c.cyan}${padLabel}${c.reset} :  ${valColor}${value}${c.reset}`);
   },
 
+  renderTable(headers, rows) {
+    if (!rows || rows.length === 0) {
+      console.log(`  ${c.gray}(No data available)${c.reset}`);
+      return;
+    }
+
+    // Calculate maximum width for each column
+    const colWidths = headers.map((h, i) => {
+      let max = h.length;
+      rows.forEach(r => {
+        const str = r[i] !== undefined && r[i] !== null ? String(r[i]).replace(/\x1b\[[0-9;]*m/g, '') : '';
+        if (str.length > max) max = str.length;
+      });
+      return max + 2; // padding
+    });
+
+    // Horizontal border line generator
+    const border = '+' + colWidths.map(w => '-'.repeat(w)).join('+') + '+';
+
+    console.log(`  ${c.gray}${border}${c.reset}`);
+    
+    // Header row
+    const headerLine = '|' + headers.map((h, i) => {
+      return ` ${c.bold}${c.bCyan}${h.padEnd(colWidths[i] - 1, ' ')}${c.reset}`;
+    }).join(`${c.gray}|${c.reset}`) + `${c.gray}|${c.reset}`;
+    
+    console.log(`  ${headerLine}`);
+    console.log(`  ${c.gray}${border}${c.reset}`);
+
+    // Data rows
+    rows.forEach(row => {
+      const line = '|' + row.map((cell, i) => {
+        const rawStr = cell !== undefined && cell !== null ? String(cell) : '';
+        const cleanLen = rawStr.replace(/\x1b\[[0-9;]*m/g, '').length;
+        const pad = Math.max(0, colWidths[i] - cleanLen - 1);
+        return ` ${rawStr}${' '.repeat(pad)}`;
+      }).join(`${c.gray}|${c.reset}`) + `${c.gray}|${c.reset}`;
+      console.log(`  ${line}`);
+    });
+
+    console.log(`  ${c.gray}${border}${c.reset}\n`);
+  },
+
   log(level, msg) {
     const lvl = level.toUpperCase();
     let prefix = `${c.cyan}[INFO]${c.reset}`;
